@@ -260,7 +260,71 @@ def compute_matrix_coloring(G, precolors, strict=False, verbose=False):
 
 # partially color graph strategies and helper
 
-def partially_color_graph_by_hyperplane_partition_strategy(G, L, colors):
+def random_partition_strategy(G, L, colors, nr_of_hyperplanes):
+    """Returns the result of single partition using random hyperplane strategy.
+    
+    Returns:
+        dict: Assignment of colors to every vertex of G given by partition of vector space. Coloring might be illegal.
+    """
+
+    n = G.number_of_nodes()
+
+    hyperplanes_sides = {v: 0 for v in range(0, n)}
+    for i in range(nr_of_hyperplanes):
+        r = np.random.normal(0, 1, n)
+        x = np.sign(np.dot(L, r))
+        for v in range(0, n):
+            if x[v] >= 0:
+                hyperplanes_sides[v] = hyperplanes_sides[v] * 2 + 1
+            else:
+                hyperplanes_sides[v] = hyperplanes_sides[v] * 2
+
+    min_available_color = max(colors.values()) + 1
+    temp_colors = {v: -1 for v in G.nodes()}
+    for i, v in enumerate(sorted(G.nodes())):  # Assume that nodes are given in the same order as in rows of L
+        temp_colors[v] = min_available_color + hyperplanes_sides[i]
+
+    return temp_colors
+
+
+def partially_color_graph_by_hyperplane_partition(G, L, colors, partition_strategy):
+    """General strategy for using hyperplane partition of vector space."""
+
+    def better_partition(G, part1, part2):
+        """Checks whether the first partition is better than the second one."""
+
+        # TODO: Some nonsense code here
+
+        if part2 is None:
+            return True
+
+        # Remove colors from one endpoint of each illegal edge.
+        illegal_edges = [(i, j) for (i, j) in G.edges() if part1[i] == part1[j] and part1[i] != -1]
+        subgraph_illegal_edges = nx.Graph()
+        subgraph_illegal_edges.add_edges_from(illegal_edges)
+
+        best_illegal_edges = [(i, j) for (i, j) in G.edges() if part2[i] == part2[j] and part2[i] != -1]
+        best_subgraph_illegal_edges = nx.Graph()
+        best_subgraph_illegal_edges.add_edges_from(best_illegal_edges)
+
+        if subgraph_illegal_edges.number_of_edges() < best_subgraph_illegal_edges.number_of_edges() \
+                or (subgraph_illegal_edges.number_of_edges() == best_subgraph_illegal_edges.number_of_edges()
+                    and len(set(part1.values())) < len(set(part2.values()))):
+            return True
+        
+        return False
+
+    best_partition = None
+    while someCondition:
+        partition = random_partition_strategy(G, L, colors)  # parti
+
+        if better_partition(partition, best_partition):
+            best_partition = partition
+
+    updateColorsAndGraph(G, colors, best_partition)
+
+
+def partially_color_graph_by_random_hyperplane_partition_strategy(G, L, colors):
     """Colors some of the vertices of the graph given it's vector coloring.
 
     Vertices are colored using partition of the space by random hyperplanes. When parameters are set correctly then
@@ -274,7 +338,7 @@ def partially_color_graph_by_hyperplane_partition_strategy(G, L, colors):
         colors (dict): Global vertex-color dictionary.
     """
 
-    def check_if_better_partition(best_subgraph_illegal_edges, current_subgraph_illegal_edges):
+    def check_if_better_partition():
         """Returns true if current partition is better than best partition.
 
         Hyperplane partitions can be assesed using different strategies. The best found so far is to first compare
@@ -288,51 +352,66 @@ def partially_color_graph_by_hyperplane_partition_strategy(G, L, colors):
             bool: True iff current partition is better than previous best partition.
         """
 
+        # TODO: examine this function closely (and generally the way you determine the best partition)
+        # Another possibility of determining better partition might be the size of min vertex cover of subgraph of
+        #   illegal edges
+
         # return subgraph_illegal_edges.number_of_nodes() - subgraph_illegal_edges.number_of_edges() \
         # > best_subgraph_illegal_edges.number_of_nodes() - best_subgraph_illegal_edges.number_of_edges()
+
+        if best_subgraph_illegal_edges is None:
+            return True
 
         return subgraph_illegal_edges.number_of_edges() < best_subgraph_illegal_edges.number_of_edges() \
                or (subgraph_illegal_edges.number_of_edges() == best_subgraph_illegal_edges.number_of_edges()
                    and len(set(temp_colors.values())) < len(set(best_temp_colors.values())))
 
-    degrees = dict(G.degree()).values()
+    logging.info('Looking for independent set using random hyperplane partition strategy...')
+
     n = G.number_of_nodes()
+    degrees = dict(G.degree()).values()
     max_degree = max(degrees)
 
     k = find_number_of_vector_colors_from_vector_coloring(G, L)
-    nr_of_hyperplanes = 2 + int(math.ceil(math.log(max_degree, k)))  # Need to verify that it is optimal.
+    opt_nr_of_hyperplanes = 2 + int(math.ceil(math.log(max_degree, k)))  # Need to verify that it is optimal.
 
-    max_iterations = 1e2
-    for iteration in range(int(max_iterations)):
-        hyperplanes_sides = {v: 0 for v in range(0, n)}
-        temp_colors = {v: -1 for v in G.nodes()}
-        for i in range(nr_of_hyperplanes):
-            r = np.random.normal(0, 1, n)
-            x = np.sign(np.dot(L, r))
-            for v in range(0, n):
-                if x[v] >= 0:
-                    hyperplanes_sides[v] = hyperplanes_sides[v] * 2 + 1
-                else:
-                    hyperplanes_sides[v] = hyperplanes_sides[v] * 2
+    logging.debug('Optimal number of hyperplanes: {0}'.format(opt_nr_of_hyperplanes))
 
-        min_available_color = max(colors.values()) + 1
-        for i, v in enumerate(
-                sorted(G.nodes())):  # I assume here that nodes are given in the same order as in rows of L.
-            temp_colors[v] = min_available_color
-            temp_colors[v] = temp_colors[v] + hyperplanes_sides[i]
+    different_hyperplane_count = 1
+    max_iterations = 1
 
-        # Remove colors from one endpoint of each illegal edge.
-        illegal_edges = [(i, j) for (i, j) in G.edges() if
-                         temp_colors[i] == temp_colors[j] and temp_colors[i] != -1]
-        subgraph_illegal_edges = nx.Graph()
-        subgraph_illegal_edges.add_edges_from(illegal_edges)
+    logging.debug('Hyperplane partitions to consider: {0} x {1}'.format(different_hyperplane_count, max_iterations))
 
-        if iteration == 0:
-            best_subgraph_illegal_edges = subgraph_illegal_edges
-            best_temp_colors = temp_colors.copy()
-        if check_if_better_partition(best_subgraph_illegal_edges, subgraph_illegal_edges):
-            best_subgraph_illegal_edges = subgraph_illegal_edges
-            best_temp_colors = temp_colors.copy()
+    best_subgraph_illegal_edges = None
+    best_temp_colors = None
+    for nr_of_hyperplanes in np.linspace(opt_nr_of_hyperplanes / 2, 3 * opt_nr_of_hyperplanes / 2,
+                                         different_hyperplane_count, dtype=np.int32):
+        for iteration in range(int(max_iterations)):
+            hyperplanes_sides = {v: 0 for v in range(0, n)}
+            temp_colors = {v: -1 for v in G.nodes()}
+            for i in range(nr_of_hyperplanes):
+                r = np.random.normal(0, 1, n)
+                x = np.sign(np.dot(L, r))
+                for v in range(0, n):
+                    if x[v] >= 0:
+                        hyperplanes_sides[v] = hyperplanes_sides[v] * 2 + 1
+                    else:
+                        hyperplanes_sides[v] = hyperplanes_sides[v] * 2
+
+            min_available_color = max(colors.values()) + 1
+            for i, v in enumerate(sorted(G.nodes())):  # Assume that nodes are given in the same order as in rows of L
+                temp_colors[v] = min_available_color
+                temp_colors[v] = temp_colors[v] + hyperplanes_sides[i]
+
+            # Remove colors from one endpoint of each illegal edge.
+            illegal_edges = [(i, j) for (i, j) in G.edges() if
+                             temp_colors[i] == temp_colors[j] and temp_colors[i] != -1]
+            subgraph_illegal_edges = nx.Graph()
+            subgraph_illegal_edges.add_edges_from(illegal_edges)
+
+            if check_if_better_partition():
+                best_subgraph_illegal_edges = subgraph_illegal_edges
+                best_temp_colors = temp_colors.copy()
 
     for v in best_temp_colors.keys():
         colors[v] = best_temp_colors[v]
@@ -345,8 +424,11 @@ def partially_color_graph_by_hyperplane_partition_strategy(G, L, colors):
     for v in vertex_cover:
         colors[v] = -1
     temp_G.remove_nodes_from(G.nodes())
+
+    logging.debug('There are {0} vertices left to color'.format(len(vertex_cover)))
+
     if not check_if_coloring_legal(temp_G, colors, partial=True):
-        raise Exception('coloring is not legal after some hyperplane partition')
+        raise Exception('Coloring is not legal after some hyperplane partition')
 
 
 def partially_color_graph_by_vector_projection_strategy(G, L, colors):

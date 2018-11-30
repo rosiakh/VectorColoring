@@ -29,13 +29,13 @@ logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=loggin
 
 # Test graph creation
 graphs = []
-# graphs.append(read_graph_from_file("dimacs", "DSJC125.9", starting_index=1))
-graphs.append(create_k_cycle(20, 60))
+graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
+# graphs.append(create_k_cycle(20, 90))
 
 # Test algorithm creation
 algorithms = []
 algorithms.append(VectorColoringAlgorithm(
-    partially_color_graph_by_vector_projection_strategy,
+    partially_color_graph_by_random_hyperplane_partition_strategy,
     no_wigderson_strategy))
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))
@@ -47,7 +47,7 @@ colorings = {}
 for g in graphs:
     colorings[g] = []
     for alg in algorithms:
-        colorings[g].append((alg.get_algorithm_name(), alg.color_graph(g, verbose=True)))
+        colorings[g].append((alg.get_algorithm_name(), alg.color_graph(g, verbose=False)))
 
 logging.shutdown()
 
