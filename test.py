@@ -6,10 +6,6 @@ Usage: python test.py
 from algorithm import *
 from graph_io import *
 from graph_create import *
-import time
-import json
-import logging
-import sys
 
 
 def display_colorings(colorings):
@@ -29,14 +25,22 @@ logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=loggin
 
 # Test graph creation
 graphs = []
-graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
+graphs.append(read_graph_from_file("dimacs", "DSJC125.9", starting_index=1))
 # graphs.append(create_k_cycle(20, 90))
+# graphs.append(create_random_graph(150, 10000))
 
 # Test algorithm creation
 algorithms = []
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='hyperplane_partition',
+#     partition_strategy='random',
+#     wigderson_strategy='no_wigderson'
+# ))
 algorithms.append(VectorColoringAlgorithm(
-    partially_color_graph_by_random_hyperplane_partition_strategy,
-    no_wigderson_strategy))
+    partial_color_strategy='vector_projection',
+    find_ind_sets_strategy='random_vector_projection',
+    wigderson_strategy='recursive_wigderson'
+))
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))
 algorithms.append(ColoringAlgorithm(
@@ -47,14 +51,14 @@ colorings = {}
 for g in graphs:
     colorings[g] = []
     for alg in algorithms:
-        colorings[g].append((alg.get_algorithm_name(), alg.color_graph(g, verbose=False)))
+        colorings[g].append((alg.get_algorithm_name(), alg.color_graph(g, verbose=True)))
 
 logging.shutdown()
 
 # Check if colorings are legal
 for g in colorings:
     for (alg_name, alg_coloring) in colorings[g]:
-        if (not check_if_coloring_legal(g, alg_coloring)):
+        if not check_if_coloring_legal(g, alg_coloring):
             raise Exception('Coloring obtained by {0} on {1} is not legal'.format(alg_name, g.name))
 
 display_colorings(colorings)
