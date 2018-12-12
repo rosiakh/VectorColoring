@@ -53,6 +53,18 @@ class VectorColoringAlgorithm:
                     L,
                     colors,
                     partition_strategy=random_partition_strategy)
+            elif partition_strategy == 'orthogonal':
+                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
+                    g,
+                    L,
+                    colors,
+                    partition_strategy=orthogonal_partition_strategy)
+            elif partition_strategy == 'clustering':
+                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
+                    g,
+                    L,
+                    colors,
+                    partition_strategy=clustering_partition_strategy)
             else:
                 raise Exception('Unknown partition strategy')
         elif partial_color_strategy == 'vector_projection':
@@ -70,8 +82,15 @@ class VectorColoringAlgorithm:
                     colors,
                     find_ind_sets_strategy=find_multiple_ind_sets_by_random_vector_projections
                 )
+            elif find_ind_sets_strategy == 'clustering':
+                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
+                    g,
+                    L,
+                    colors,
+                    find_ind_sets_strategy=find_ind_set_by_clustering
+                )
             else:
-                raise Exception('Unknown find_v_set_strategy')
+                raise Exception('Unknown find_ind_set_strategy')
         else:
             raise Exception('Unknown partial coloring strategy')
 
@@ -89,7 +108,7 @@ class VectorColoringAlgorithm:
         else:
             self.name = "pcs: " + partial_color_strategy + " ws: " + wigderson_strategy
 
-    def color_graph(self, g, colors=None, verbose=False, precolors=None):
+    def color_graph(self, g, colors=None, verbose=True, precolors=None):
         """Colors graph using vector coloring algorithm.
 
         Args:
@@ -122,11 +141,10 @@ class VectorColoringAlgorithm:
             logging.info('\n')
             logging.info('Starting iteration nr {0} of main loop...'.format(it))
             if current_g.number_of_nodes() > 1 and current_g.number_of_edges() > 0:
-                M = compute_matrix_coloring(current_g, precolors, verbose=verbose)
-                L = compute_vector_coloring(M)
+                L = compute_vector_coloring(current_g, precolors, strict=False, verbose=verbose, iteration=it)
                 if it == 1:
-                    self._wigderson_strategy(current_g, colors, L)
-                    continue
+                    if self._wigderson_strategy(current_g, colors, L):
+                        continue  # Wigderson colored some vertices so we need to recompute vector coloring
                 current_nodes = current_g.number_of_nodes()
                 while current_g.number_of_nodes() == current_nodes:
                     self._partially_color_strategy(current_g, L, colors)
@@ -148,7 +166,7 @@ class VectorColoringAlgorithm:
         return self.name
 
 
-def compute_vector_coloring(M):
+def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration=False):
     """Computes vector coloring on the basis of matrix coloring using Cholesky decomposition.
 
         Args:
@@ -158,7 +176,7 @@ def compute_vector_coloring(M):
               2-dim matrix: Rows of this matrix are vectors of computed vector coloring.
         """
 
-    def cholesky_factorize(M):
+    def cholesky_factorize(m):
         """Returns L such that M = LL^T.
 
             According to https://en.wikipedia.org/wiki/Cholesky_decomposition#Proof_for_positive_semi-definite_matrices
@@ -169,7 +187,7 @@ def compute_vector_coloring(M):
             It sometimes returns an error if M was computed with big tolerance for error.
 
             Args:
-                M (2-dim matrix): Positive semidefinite matrix to be factorized.
+                m (2-dim matrix): Positive semidefinite matrix to be factorized.
 
             Returns:
                 L (2-dim matrix): Cholesky factorization of M such that M = LL^T.
@@ -178,7 +196,7 @@ def compute_vector_coloring(M):
         logging.info('Starting Cholesky factorization...')
 
         eps = 10e-8
-        L = M
+        L = m
 
         for i in range(L.shape[0]):
             L[i, i] = L[i, i] + eps  # TODO: Should I normalize the output vector coloring?
@@ -193,79 +211,91 @@ def compute_vector_coloring(M):
         logging.info('Cholesky factorization computed')
         return L
 
-    return cholesky_factorize(M)
+    def compute_matrix_coloring(g, precolors, strict=False, verbose=False):
+        """Finds matrix coloring M of graph g using Mosek solver.
 
+        Maybe we can add epsilon to SDP constraints instead of 'solve' parameters?
 
-def compute_matrix_coloring(G, precolors, strict=False, verbose=False):
-    """Finds matrix coloring M of graph G using CVXPY.
+        For some reason optimal value of alpha is greater than value computed from M below if SDP is solved with big
+            tolerance for error
 
-    Maybe we can add epsilon to SDP constraints instead of 'solve' parameters?
+        Args:
+            g (Graph): Graph to be processed.
+            strict (bool): Are we looking for strict vector coloring.
+            verbose (bool): Sets verbosity level of solver.
+            precolors (dict): Full legal coloring of graph G used to obtain good starting point for solver.
 
-    For some reason optimal value of alpha is greater than value computed from M below if SDP is solved with big
-        tolerance for error
+        Returns:
+            2-dim matrix: Matrix coloring of graph G.
+        """
 
-    Args:
-        G (Graph): Graph to be processed.
-        strict (bool): Are we looking for strict vector coloring.
-        verbose (bool): Sets verbosity level of solver.
-        precolors (dict): Full legal coloring of graph G used to obtain good starting point for solver.
+        logging.info('Computing matrix coloring of graph with {0} nodes and {1} edges...'.format(
+            g.number_of_nodes(), g.number_of_edges()
+        ))
 
-    Returns:
-        2-dim matrix: Matrix coloring of graph G.
-    """
+        def has_edge_between_ith_and_jth(G, i, j):
+            """Checks if there is an edge in G between i-th vertex and j-th vertex after sorting them.
 
-    logging.info('Computing matrix coloring of graph with {0} nodes and {1} edges...'.format(
-        G.number_of_nodes(), G.number_of_edges()
-    ))
+                Graph may have vertex called 'i' that isn't it's i-th vertex in sorted order (e.g. when some vertices have been
+                    removed from the graph). This function checks if there is an edge between i-th and j-th vertex in sorted
+                    order, so i-th and j-th vertex exist as long as those numbers are less than G.number_of_nodes()
 
-    def has_edge_between_ith_and_jth(G, i, j):
-        """Checks if there is an edge in G between i-th vertex and j-th vertex after sorting them.
+                Args:
+                    G (Graph): Graph to be processed
+                    i (int): Number between 0 and G.number_of_nodes()-1
+                    j (int): Number between 0 and G.number_of_nodes()-1
 
-            Graph may have vertex called 'i' that isn't it's i-th vertex in sorted order (e.g. when some vertices have been
-                removed from the graph). This function checks if there is an edge between i-th and j-th vertex in sorted
-                order, so i-th and j-th vertex exist as long as those numbers are less than G.number_of_nodes()
+                Returns:
+                    bool: True iff there is an edge in G between i-th vertex and j-th vertex after sorting them.
+                """
 
-            Args:
-                G (Graph): Graph to be processed
-                i (int): Number between 0 and G.number_of_nodes()-1
-                j (int): Number between 0 and G.number_of_nodes()-1
+            return G.has_edge(sorted(list(G.nodes()))[i], sorted(list(G.nodes()))[j])
 
-            Returns:
-                bool: True iff there is an edge in G between i-th vertex and j-th vertex after sorting them.
-            """
+        with Model() as M:
 
-        return G.has_edge(sorted(list(G.nodes()))[i], sorted(list(G.nodes()))[j])
+            # Variables
+            n = g.number_of_nodes()
+            alpha = M.variable("alpha", Domain.lessThan(0.))
+            m = M.variable(Domain.inPSDCone(n))
 
-    with Model() as M:
+            # Constraints
+            M.constraint("C1", m.diag(), Domain.equalsTo(1.0))
+            for i in range(n):
+                for j in range(n):
+                    if i > j and has_edge_between_ith_and_jth(g, i, j):
+                        if strict:
+                            M.constraint('C{0}{1}{2}'.format(i, j, i * j), Expr.sub(m.index(i, j), alpha),
+                                         Domain.equalsTo(0.))
+                        else:
+                            M.constraint('C{0}{1}{2}'.format(i, j, i * j), Expr.sub(m.index(i, j), alpha),
+                                         Domain.lessThan(0.))
 
-        # Variables
-        n = G.number_of_nodes()
-        alpha = M.variable("alpha", Domain.lessThan(0.))
-        m = M.variable(Domain.inPSDCone(n))
+            # Objective
+            M.objective(ObjectiveSense.Minimize, alpha)
 
-        # Constraints
-        M.constraint("C1", m.diag(), Domain.equalsTo(1.0))
-        for i in range(n):
-            for j in range(n):
-                if i > j and has_edge_between_ith_and_jth(G, i, j):
-                    M.constraint('C{0}{1}{2}'.format(i, j, i * j), Expr.sub(m.index(i, j), alpha), Domain.lessThan(0.))
+            # Set solver parameters
+            M.setSolverParam("numThreads", 0)
 
-        # Objective
-        M.objective(ObjectiveSense.Minimize, alpha)
+            if verbose:
+                M.setLogHandler(sys.stdout)
 
-        # Set solver parameters
-        M.setSolverParam("numThreads", 0)
+            M.solve()
 
-        if verbose:
-            M.setLogHandler(sys.stdout)
+            alpha_opt = alpha.level()[0]
+            level = m.level()
+            result = [[level[j * n + i] for i in range(n)] for j in range(n)]
+            result = np.array(result)
 
-        M.solve()
+        logging.info('Found matrix {0}-coloring'.format(1 - 1 / alpha_opt))
 
-        alpha_opt = alpha.level()[0]
-        level = m.level()
-        result = [[level[j * n + i] for i in range(n)] for j in range(n)]
-        result = np.array(result)
+        return result
 
-    logging.info('Found matrix {0}-coloring'.format(1 - 1 / alpha_opt))
+    if iteration == 1 and vector_coloring_in_file(g, strict):
+        l = read_vector_coloring_from_file(g, strict)
+    else:
+        m = compute_matrix_coloring(g, precolors, strict=False, verbose=False)
+        l = cholesky_factorize(m)
+        if iteration == 1:
+            save_vector_coloring_to_file(g, strict, l)
 
-    return result
+    return l

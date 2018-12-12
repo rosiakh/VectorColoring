@@ -19,7 +19,7 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
         Graph: networkx.Graph object created from given file with nodes indexed from 0.
     """
 
-    G = nx.Graph()
+    g = nx.Graph()
 
     filename = 'graph_instances/' + folder_name + '/' + graph_name + '.col'
     with open(filename) as f:
@@ -27,26 +27,26 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
             l = line.split()
             if l[0] == 'p':
                 nr_of_nodes = int(l[2])
-                G.add_nodes_from(range(starting_index, starting_index + nr_of_nodes))
+                g.add_nodes_from(range(starting_index, starting_index + nr_of_nodes))
             elif l[0] == 'e':
                 try:
                     e1 = int(l[1])
                     e2 = int(l[2])
-                    G.add_edge(e1, e2)
+                    g.add_edge(e1, e2)
                 except ValueError:
-                    G.add_edge(l[1], l[2])
+                    g.add_edge(l[1], l[2])
 
     # G = nx.relabel_nodes(G, lambda x: x - 1, copy=False)
-    G.name = graph_name
+    g.name = graph_name
 
-    return G
+    return g
 
 
-def draw_graph(G, colors, toConsole=True, toImage=False, filename='graph'):
+def draw_graph(g, colors, toConsole=True, toImage=False, filename='graph'):
     """Draws graph and saves image to file.
 
     Args:
-        G (Graph): Graph to be drawn.
+        g (Graph): Graph to be drawn.
         colors (dict): Global vertex-color dictionary.
         filename (str): File to save.
     """
@@ -65,19 +65,19 @@ def draw_graph(G, colors, toConsole=True, toImage=False, filename='graph'):
         print 'number of colors used:', len(set(colors_list))
         # print 'bin colors: ', [bin(colors[v]) for v in range(0, G.number_of_nodes() + 0)]
     else:
-        colors_list = [1] * G.number_of_nodes()
+        colors_list = [1] * g.number_of_nodes()
 
     if toConsole:
-        print 'name:', G.name
-        print 'number of nodes:', G.number_of_nodes()
-        print 'number of edges:', G.number_of_edges()
+        print 'name:', g.name
+        print 'number of nodes:', g.number_of_nodes()
+        print 'number of edges:', g.number_of_edges()
         # print 'edges:', G.edges()
 
     if toImage:
-        node_labels = {v: str(v + 0) for v in range(G.number_of_nodes())}
+        node_labels = {v: str(v + 0) for v in range(g.number_of_nodes())}
         fig = pylab.figure(figsize=(11, 8))
 
-        nx.draw(G, pos=nx.circular_layout(G), with_labels=True, node_color=colors_list, cmap=plt.cm.Spectral,
+        nx.draw(g, pos=nx.circular_layout(g), with_labels=True, node_color=colors_list, cmap=plt.cm.Spectral,
                 labels=node_labels)
 
         # hide axis

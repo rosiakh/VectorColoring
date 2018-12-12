@@ -44,7 +44,7 @@ def max_ind_set_wigderson_strategy(g, colors, L):
         g.remove_nodes_from(max_ind_set)
         max_degree = max(dict(g.degree()).values())
 
-    return
+    return True
 
 
 def recursive_wigderson_strategy(g, colors, L):
@@ -54,6 +54,9 @@ def recursive_wigderson_strategy(g, colors, L):
         g (graph): Graph to be processed.
         colors (dict): Global vertex-color dictionary.
         threshold_degree (int): Lower boundary for degree of processed nodes of g.
+
+    Returns:
+        bool: Returns true if it is not an empty function.
     """
 
     # TODO; Maybe try iterative version
@@ -65,7 +68,7 @@ def recursive_wigderson_strategy(g, colors, L):
     max_degree = max(dict(g.degree()).values())
     threshold_degree = pow(n, (k - 1) / k)
     it = 0
-    while max_degree > threshold_degree:
+    while max_degree > threshold_degree and g.number_of_nodes() > 25:
         it += 1
 
         # Find any vertex with degree equal to max_degree.
@@ -91,8 +94,8 @@ def recursive_wigderson_strategy(g, colors, L):
         g.remove_nodes_from(neighbors_subgraph.nodes())
         max_degree = max(dict(g.degree()).values())
 
-    return
+    return it > 0
 
 
 def no_wigderson_strategy(g, colors, L):
-    pass
+    return False

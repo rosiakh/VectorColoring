@@ -1,6 +1,18 @@
-import networkx as nx
+import os
+
 import numpy as np
+from matplotlib import pyplot as plt
 from networkx import Graph
+from scipy.cluster.hierarchy import dendrogram
+import networkx as nx
+
+dirname = '/home/hubert/VectorColoring/'
+if not os.path.exists(dirname):
+    os.makedirs(dirname)
+
+vc_dirname = dirname + 'VectorColorings/'
+if not os.path.exists(vc_dirname):
+    os.makedirs(vc_dirname)
 
 
 def find_number_of_vector_colors_from_vector_coloring(g, L):
@@ -100,3 +112,57 @@ def get_lowest_legal_color(graph, vertex, coloring):
             return clr
 
     return len(taken_colors)
+
+
+def extract_independent_subset(vertices, edges):
+    """Returns subset of vertices that constitute an independent set."""
+
+    subgraph = nx.Graph()
+    subgraph.add_nodes_from(vertices)
+    subgraph.add_edges_from(edges)
+    temp_colors = {v: 0 for v in subgraph.nodes()}
+
+    nodes_to_del = nodes_to_delete(subgraph, temp_colors, strategy='max_degree_first')
+
+    subgraph.remove_nodes_from(nodes_to_del)
+
+    return set(subgraph.nodes())
+
+
+def show_dendrogram(Z):
+    plt.figure(figsize=(25, 10))
+    plt.title('Hierarchical Clustering Dendrogram')
+    plt.xlabel('sample index')
+    plt.ylabel('distance')
+    dendrogram(
+        Z,
+        show_leaf_counts=False,  # otherwise numbers in brackets are counts
+        leaf_rotation=90.,
+        leaf_font_size=12.,
+        show_contracted=True,  # to get a distribution impression in truncated branches
+    )
+    plt.show()
+
+
+def get_vector_coloring_filename(g, strict):
+    vc_dirname = dirname + 'VectorColorings/'
+    filename = vc_dirname + '_' + g.name + '_strict=' + str(strict) + '_VectorColoring'
+
+    return filename
+
+
+def save_vector_coloring_to_file(g, strict, l):
+    filename = get_vector_coloring_filename(g, strict)
+    np.savetxt(filename, l)
+
+
+def vector_coloring_in_file(g, strict):
+    filename = get_vector_coloring_filename(g, strict)
+
+    return os.path.exists(filename)
+
+
+def read_vector_coloring_from_file(g, strict):
+    filename = get_vector_coloring_filename(g, strict)
+
+    return np.loadtxt(filename)
