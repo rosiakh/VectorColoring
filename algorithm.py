@@ -8,7 +8,7 @@ from networkx import Graph
 from hyperplane_partition import *
 from vector_projection import *
 from wigderson import *
-
+import itertools
 
 class ColoringAlgorithm:
 
@@ -65,6 +65,12 @@ class VectorColoringAlgorithm:
                     L,
                     colors,
                     partition_strategy=clustering_partition_strategy)
+            elif partition_strategy == 'kmeans_clustering':
+                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
+                    g,
+                    L,
+                    colors,
+                    partition_strategy=kmeans_clustering_partition_strategy)
             else:
                 raise Exception('Unknown partition strategy')
         elif partial_color_strategy == 'vector_projection':
@@ -74,6 +80,20 @@ class VectorColoringAlgorithm:
                     L,
                     colors,
                     find_ind_sets_strategy=find_ind_set_by_random_vector_projection
+                )
+            elif find_ind_sets_strategy == 'random_vector_projection_kms':
+                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
+                    g,
+                    L,
+                    colors,
+                    find_ind_sets_strategy=find_ind_set_by_random_vector_projection_kms
+                )
+            elif find_ind_sets_strategy == 'random_vector_projection_kms_prim':
+                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
+                    g,
+                    L,
+                    colors,
+                    find_ind_sets_strategy=find_ind_set_by_random_vector_projection_kms_prim
                 )
             elif find_ind_sets_strategy == 'multiple_random_vector_projection':
                 self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
@@ -233,23 +253,7 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
             g.number_of_nodes(), g.number_of_edges()
         ))
 
-        def has_edge_between_ith_and_jth(G, i, j):
-            """Checks if there is an edge in G between i-th vertex and j-th vertex after sorting them.
-
-                Graph may have vertex called 'i' that isn't it's i-th vertex in sorted order (e.g. when some vertices have been
-                    removed from the graph). This function checks if there is an edge between i-th and j-th vertex in sorted
-                    order, so i-th and j-th vertex exist as long as those numbers are less than G.number_of_nodes()
-
-                Args:
-                    G (Graph): Graph to be processed
-                    i (int): Number between 0 and G.number_of_nodes()-1
-                    j (int): Number between 0 and G.number_of_nodes()-1
-
-                Returns:
-                    bool: True iff there is an edge in G between i-th vertex and j-th vertex after sorting them.
-                """
-
-            return G.has_edge(sorted(list(G.nodes()))[i], sorted(list(G.nodes()))[j])
+        dsatur_coloring = nx.algorithms.coloring.greedy_color(g, strategy='DSATUR')
 
         with Model() as M:
 
@@ -264,10 +268,10 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
                 for j in range(n):
                     if i > j and has_edge_between_ith_and_jth(g, i, j):
                         if strict:
-                            M.constraint('C{0}{1}{2}'.format(i, j, i * j), Expr.sub(m.index(i, j), alpha),
+                            M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
                                          Domain.equalsTo(0.))
                         else:
-                            M.constraint('C{0}{1}{2}'.format(i, j, i * j), Expr.sub(m.index(i, j), alpha),
+                            M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
                                          Domain.lessThan(0.))
 
             # Objective
@@ -275,6 +279,7 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
 
             # Set solver parameters
             M.setSolverParam("numThreads", 0)
+
 
             if verbose:
                 M.setLogHandler(sys.stdout)
@@ -290,12 +295,118 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
 
         return result
 
-    if iteration == 1 and vector_coloring_in_file(g, strict):
-        l = read_vector_coloring_from_file(g, strict)
-    else:
-        m = compute_matrix_coloring(g, precolors, strict=False, verbose=False)
-        l = cholesky_factorize(m)
-        if iteration == 1:
-            save_vector_coloring_to_file(g, strict, l)
+    # if iteration == 1 and vector_coloring_in_file(g, strict):
+    # l = read_vector_coloring_from_file(g, strict)
+    # else:
+    m = compute_matrix_coloring(g, precolors, strict=False, verbose=False)
+    l = cholesky_factorize(m)
+    if iteration == 1:
+        save_vector_coloring_to_file(g, strict, l)
 
     return l
+
+
+def compute_optimal_coloring_lp(g, colors=None, verbose=False):
+    """Computes optimal coloring using linear programming."""
+
+    with Model() as M:
+
+        n = g.number_of_nodes()
+
+        # Variables
+        x = M.variable([n, n], Domain.binary())
+        w = M.variable("w", n, Domain.binary())
+
+        # Constraints
+        M.constraint('X', Expr.sum(x, 1), Domain.equalsTo(1))
+
+        for i in range(n):
+            for j in range(n):
+                M.constraint('C{0}-{1}'.format(i, j), Expr.sub(x.index(i, j), w.index(j)),
+                             Domain.lessThan(0.0))
+
+        for i in range(n):
+            for j in range(n):
+                if i > j and has_edge_between_ith_and_jth(g, i, j):
+                    for k in range(n):
+                        M.constraint('D{0}-{1}-{2}'.format(i, j, k), Expr.add(x.index(i, k), x.index(j, k)),
+                                     Domain.lessThan(1.0))
+
+        # Objective
+        M.objective(ObjectiveSense.Minimize, Expr.sum(w))
+
+        # Set solver parameters
+        M.setSolverParam("numThreads", 0)
+
+        if verbose:
+            M.setLogHandler(sys.stdout)
+
+        M.solve()
+
+        coloring = {}
+
+        for i, v in enumerate(sorted(list(g.nodes()))):
+            for c in range(n):
+                if x.index(i, c).level() == 1.0:
+                    coloring[v] = c
+                    break
+
+    return coloring
+
+
+def compute_optimal_coloring_dp(g, colors=None, verbose=False):
+    """Computes optimal coloring using dynamic programming."""
+
+    T_Sets = {w: [] for r in range(g.number_of_nodes() + 1) for w in itertools.combinations(g.nodes(), r)}
+    T = {w: -1 for r in range(g.number_of_nodes() + 1) for w in itertools.combinations(g.nodes(), r)}  # set(w)
+    T[()] = 0
+
+    for w in T.keys():
+        if len(w) == 1:
+            T[w] = 1
+            T_Sets[w] = [w]
+
+    for w in sorted(T.keys(), key=len):
+        if len(w) <= 1:
+            continue
+
+        min_chi = g.number_of_nodes()
+        min_s = []
+        subsets = [s for r in range(1, len(w) + 1) for s in itertools.combinations(w, r)]  # non-empty subsets
+
+        for s in subsets:
+            if len(s) == len(w):
+                g_s = g.subgraph(s)
+                if g_s.number_of_edges() > 0:
+                    continue
+            else:
+                if T[s] > 1:  # S is not independent
+                    continue
+
+            temp = list(set(w) - set(s))
+            temp.sort()
+            temp = tuple(temp)
+
+            if T[temp] < min_chi:
+                min_chi = T[temp]
+                min_s = s
+
+        T[w] = min_chi + 1
+        T_Sets[w] = min_s
+
+    # Now compute the coloring
+    ind_sets = []
+    vertices = tuple(g.nodes())
+    while vertices:
+        i_set = T_Sets[vertices]
+        vertices = tuple(v for v in vertices if v not in i_set)
+        ind_sets.append(i_set)
+
+    coloring = {}
+    clr = -1
+    for v_set in ind_sets:
+        clr += 1
+        for v in v_set:
+            coloring[v] = clr
+
+    return coloring

@@ -25,11 +25,39 @@ logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=loggin
 
 # Test graph creation
 graphs = []
-graphs.append(read_graph_from_file("dimacs", "DSJC125.5", starting_index=1))
-# graphs.append(read_graph_from_file("dimacs", "DSJC500.1", starting_index=1))
 
-# graphs.append(create_k_cycle(40, 120))
-# graphs.append(create_random_graph(150, 10000))
+# graphs.append(nx.powerlaw_cluster_graph(180, 37, 0.3)) # duza przewaga dsatur
+
+# graphs.append(create_erdos_renyi_graph(100, 0.5)) # nie widac roznicy
+# graphs.append(nx.ring_of_cliques(10, 10))
+# graphs.append(nx.connected_caveman_graph(10,10))
+# graphs.append(nx.random_regular_graph(19, 160))
+# graphs.append(nx.circular_ladder_graph(140))
+# graphs.append(nx.dorogovtsev_goltsev_mendes_graph(2))
+# graphs.append(nx.full_rary_tree(40, 350))
+# graphs.append(nx.ladder_graph(150))
+# graphs.append(nx.lollipop_graph(20, 50))
+# graphs.append(nx.star_graph(150))
+# graphs.append(nx.turan_graph(150, 9))
+# graphs.append(nx.wheel_graph(170))
+# graphs.append(nx.margulis_gabber_galil_graph(12))
+# graphs.append(nx.chordal_cycle_graph(131))
+# graphs.append(create_crown_graph(130))
+# graphs.append(nx.triangular_lattice_graph(30,21))
+# graphs.append(nx.tutte_graph())
+# graphs.append(nx.random_lobster(130, 0.8, 0.7))
+# graphs.append(nx.duplication_divergence_graph(170, 0.999))
+# graphs.append(nx.geographical_threshold_graph(150, 0.2))
+# graphs.append(nx.windmill_graph(16, 14))
+# graphs.append(nx.mycielski_graph(8))
+# graphs.append(nx.random_partition_graph([x for x in range(15, 23)], 0.9, 0.2))
+
+# graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
+# graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
+graphs.append(read_graph_from_file("dimacs", "DSJC1000.1", starting_index=1))
+
+# graphs.append(create_k_cycle(4, 20))
+# graphs.append(create_erdos_renyi_graph_edges(20, 5*13))
 
 # Test algorithm creation
 algorithms = []
@@ -39,13 +67,18 @@ algorithms = []
 #     wigderson_strategy='no_wigderson',
 #     alg_name='orthogonal hyperplane partition'
 # ))
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='vector_projection',
-    find_ind_sets_strategy='clustering',
-    wigderson_strategy='no_wigderson',
-    alg_name='clustering no wigderson'
-))
-
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='vector_projection',
+#     find_ind_sets_strategy='clustering',
+#     wigderson_strategy='no_wigderson',
+#     alg_name='clustering no wigderson'
+# ))
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='hyperplane_partition',
+#     partition_strategy='kmeans_clustering',
+#     wigderson_strategy='no_wigderson',
+#     alg_name='kmeans clustering partition'
+# ))
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='hyperplane_partition',
 #     partition_strategy='clustering',
@@ -70,10 +103,18 @@ algorithms.append(VectorColoringAlgorithm(
 #     wigderson_strategy='no_wigderson',
 # alg_name='random vector projection no wigderson'
 # ))
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='vector_projection',
+    find_ind_sets_strategy='random_vector_projection_kms_prim',
+    wigderson_strategy='no_wigderson',
+    alg_name='random vector projection no wigderson'
+))
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='DSATUR'), 'dsatur'))
+# algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_lp(g), 'optimal_coloring_lp'))
+#algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_dp(g), 'optimal_coloring_dp'))
 
 # Run algorithms to obtain colorings
 colorings = {}

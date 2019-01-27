@@ -76,7 +76,7 @@ def create_k_cycle(k, n):
     edges = []
     for i in vertices:
         for j in vertices:
-            if 0 < ((i - j) % n) <= k:  # Why not
+            if 0 < ((i - j) % n) <= k:
                 edges.append((i, j))
 
     g = nx.Graph()
@@ -88,11 +88,64 @@ def create_k_cycle(k, n):
     return g
 
 
-def create_random_graph(vertices, edges):
+def create_crown_graph(n):
+    vertices = [i for i in range(2 * n)]
+    edges = []
+    for i in range(n):
+        for j in range(n, 2 * n):
+            if abs(i - j) != n:
+                edges.append((i, j))
+
+    g = nx.Graph()
+    g.add_nodes_from(vertices)
+    g.add_edges_from(edges)
+
+    g.name = 'crown graph {0}n'.format(n)
+    return g
+
+
+def create_erdos_renyi_graph_edges(vertices, edges):
     """Creates random graph of type networkx.dense_gnm_random_graph."""
 
     G = nx.dense_gnm_random_graph(vertices, edges)
-    G.name = 'dense_random_graph_{0}v_{1}e'.format(vertices, edges)
+    G.name = 'dense_random_graph_{0}n_{1}e'.format(vertices, edges)
+
+    return G
+
+
+def create_erdos_renyi_graph(n, p):
+    """Creates random graph of type networkx.erdos_renyi_graph."""
+
+    G = nx.erdos_renyi_graph(n, p)
+    G.name = 'erdos_renyi_graph_{0}n_{1}p'.format(n, p)
+
+    return G
+
+
+def create_watts_strogatz_graph(n, k, p):
+    """Creates random graph of type nx.connected_watts_strogatz_graph.
+
+    Args:
+        n (int): the number of nodes
+        k (int): each node is joined with k nearest neighbors in a ring topology
+        p (float): the probability of rewiring each edge
+    """
+
+    G = nx.connected_watts_strogatz_graph(n, k, p)
+    G.name = 'watts_strogatz_graph_{0}n_{1}k_{2}p'.format(n, k, p)
+
+    return G
+
+
+def create_barabasi_albert_graph(n, m):
+    """Creates random graph of type networkx.dense_gnm_random_graph.
+    Args:
+        n (int): number of nodes
+        m (int): number of edges to attach from a new node to existing nodes
+    """
+
+    G = nx.dense_gnm_random_graph(n, m)
+    G.name = 'barabasi_albert_graph_{0}n_{1}m'.format(n, m)
 
     return G
 
@@ -112,6 +165,6 @@ def create_set_of_random_graphs(
         density = [0.5 * max_m]
         for m in density:
             for iters in range(iterations_per_vertex_number):
-                graphs.append(create_random_graph(n, m))
+                graphs.append(create_erdos_renyi_graph(n, m))
 
     return graphs

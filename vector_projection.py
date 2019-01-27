@@ -19,6 +19,12 @@ def better_ind_sets(g, ind_sets1, ind_sets2):
     temp_colors1 = {v: -1 for s in ind_sets1 for v in s}
     temp_colors2 = {v: -1 for s in ind_sets2 for v in s}
 
+    if len(set(temp_colors2.values())) == 0:
+        return False
+
+    if len(set(temp_colors1.values())) == 0:
+        return False
+
     clr = 0
     for ind_set in ind_sets1:
         clr += 1
@@ -76,6 +82,139 @@ def partially_color_graph_by_vector_projections(g, L, colors, find_ind_sets_stra
     logging.debug('Found independent sets (maybe identical) of sizes: ' + str([len(s) for s in best_ind_sets]))
 
 
+def find_ind_set_by_random_vector_projection_kms(g, L):
+    """KMS according to Arora, Chlamtac, Charikar"""
+
+    def better_subgraph(subg_v1, subg_e1, subg_v2, subg_e2):
+        """Returns True if subg1 is a better subgraph than subg2. Subgraph1 is represented by its vertices and edges.
+            subg_v1 and subg_e1."""
+
+        if subg_v2 is None or len(subg_v2) == 0:
+            return True
+
+        if subg_v1 is None or len(subg_v1) == 0:
+            return False
+
+        ind_set1 = extract_independent_subset(subg_v1, subg_e1, strategy='arora_kms')
+        ind_set2 = extract_independent_subset(subg_v2, subg_e2, strategy='arora_kms')
+
+        return len(ind_set1) > len(ind_set2)
+
+    def compute_c_opt(g, L):
+        """Computes optimal c parameter according to KMS.
+
+        Args:
+            g (nx.Graph): Graph
+            L (2-dim array): Vector coloring of g
+        """
+
+        max_degree = max(dict(g.degree()).values())
+        k = find_number_of_vector_colors_from_vector_coloring(g, L)
+        temp = (2 * (k - 2) * math.log(max_degree)) / k
+        if temp >= 0:
+            c = math.sqrt(temp)
+        else:
+            c = 0.0
+
+        return c
+
+    # Config
+    iterations = 1000
+    iterations_wo_change = 100
+    c = compute_c_opt(g, L)
+
+    n = g.number_of_nodes()
+    inv_vertices_mapping = {i: v for i, v in enumerate(sorted(g.nodes()))}
+
+    best_subgraph_edges = None
+    best_subgraph_nodes = None
+    it = 0
+    last_change = 0
+    while it < iterations and it - last_change < iterations_wo_change:
+        it += 1
+        r = np.random.normal(0, 1, n)
+        x = np.dot(L, r)
+        current_subgraph_nodes = {inv_vertices_mapping[i] for i, v in enumerate(x) if v >= c}
+        current_subgraph_edges = {(i, j) for i, j in g.edges() if
+                                  (i in current_subgraph_nodes and j in current_subgraph_nodes)}
+
+        if better_subgraph(current_subgraph_nodes, current_subgraph_edges, best_subgraph_nodes, best_subgraph_edges):
+            best_subgraph_nodes = current_subgraph_nodes
+            best_subgraph_edges = current_subgraph_edges
+            last_change = it
+
+    return [extract_independent_subset(best_subgraph_nodes, best_subgraph_edges, strategy='arora_kms')]
+
+
+def find_ind_set_by_random_vector_projection_kms_prim(g, L):
+    """KMS according to Arora, Chlamtac, Charikar"""
+
+    def better_subgraph(subg_v1, subg_e1, subg_v2, subg_e2):
+        """Returns True if subg1 is a better subgraph than subg2. Subgraph1 is represented by its vertices and edges.
+            subg_v1 and subg_e1."""
+
+        if subg_v2 is None or len(subg_v2) == 0:
+            return True
+
+        if subg_v1 is None or len(subg_v1) == 0:
+            return False
+
+        ind_set1 = extract_independent_subset(subg_v1, subg_e1, strategy='arora_kms_prim')
+        ind_set2 = extract_independent_subset(subg_v2, subg_e2, strategy='arora_kms_prim')
+
+        return len(ind_set1) > len(ind_set2)
+
+    def compute_c_opt(g, L):
+        """Computes optimal c parameter according to KMS.
+
+        Args:
+            g (nx.Graph): Graph
+            L (2-dim array): Vector coloring of g
+        """
+
+        max_degree = max(dict(g.degree()).values())
+        k = find_number_of_vector_colors_from_vector_coloring(g, L)
+        temp = (2 * (k - 2) * math.log(max_degree)) / k
+        if temp >= 0:
+            c = math.sqrt(temp)
+        else:
+            c = 0.0
+
+        return c
+
+    # Config
+    iterations = 10
+    iterations_wo_change = 100
+    # c = compute_c_opt(g, L)
+
+    n = g.number_of_nodes()
+    inv_vertices_mapping = {i: v for i, v in enumerate(sorted(g.nodes()))}
+
+    best_subgraph_edges = None
+    best_subgraph_nodes = None
+    it = 0
+    last_change = 0
+    while it < iterations and it - last_change < iterations_wo_change:
+        it += 1
+        r = np.random.normal(0, 1, n)
+        x = np.dot(L, r)
+        # logging.debug('min(x): {1}    max(x): {0}'.format(max(x), min(x)))
+        for c in np.linspace(0, max(x), num=8):
+            current_subgraph_nodes = {inv_vertices_mapping[i] for i, v in enumerate(x) if v >= c}
+            current_subgraph_edges = {(i, j) for i, j in g.edges() if
+                                      (i in current_subgraph_nodes and j in current_subgraph_nodes)}
+
+            if better_subgraph(current_subgraph_nodes, current_subgraph_edges, best_subgraph_nodes,
+                               best_subgraph_edges):
+                best_subgraph_nodes = current_subgraph_nodes
+                best_subgraph_edges = current_subgraph_edges
+                last_change = it
+
+    return [extract_independent_subset(best_subgraph_nodes, best_subgraph_edges, strategy='arora_kms_prim')]
+
+
+
+
 def find_ind_set_by_random_vector_projection(g, L):
     """Returns one set of vertices (one-element list) obtained by random vector projection."""
 
@@ -91,21 +230,10 @@ def find_ind_set_by_random_vector_projection(g, L):
         if subg_v1 is None or len(subg_v1) == 0:
             return False
 
-        subg1 = nx.Graph()
-        subg1.add_nodes_from(subg_v1)
-        subg1.add_edges_from(subg_e1)
+        ind_set1 = extract_independent_subset(subg_v1, subg_e1, strategy='max_degree_first')
+        ind_set2 = extract_independent_subset(subg_v2, subg_e2, strategy='max_degree_first')
 
-        subg2 = nx.Graph()
-        subg2.add_nodes_from(subg_v2)
-        subg2.add_edges_from(subg_e2)
-
-        to_del1 = nodes_to_delete(subg1, {v: 0 for v in subg1.nodes()})
-        to_del2 = nodes_to_delete(subg2, {v: 0 for v in subg2.nodes()})
-
-        subg1.remove_nodes_from(to_del1)
-        subg2.remove_nodes_from(to_del2)
-
-        return subg1.number_of_nodes() > subg2.number_of_nodes()
+        return len(ind_set1) > len(ind_set2)
 
     def compute_c_opt(g, L):
         """Computes optimal c parameter according to KMS.

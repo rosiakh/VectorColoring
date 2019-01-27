@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from networkx import Graph
 from scipy.cluster.hierarchy import dendrogram
 import networkx as nx
+import random
 
 dirname = '/home/hubert/VectorColoring/'
 if not os.path.exists(dirname):
@@ -41,6 +42,25 @@ def find_number_of_vector_colors_from_vector_coloring(g, L):
     return 1 - 1 / max(cells)
 
 
+def has_edge_between_ith_and_jth(G, i, j):
+    """Checks if there is an edge in G between i-th vertex and j-th vertex after sorting them.
+
+        Graph may have vertex called 'i' that isn't it's i-th vertex in sorted order (e.g. when some vertices have been
+            removed from the graph). This function checks if there is an edge between i-th and j-th vertex in sorted
+            order, so i-th and j-th vertex exist as long as those numbers are less than G.number_of_nodes()
+
+        Args:
+            G (Graph): Graph to be processed
+            i (int): Number between 0 and G.number_of_nodes()-1
+            j (int): Number between 0 and G.number_of_nodes()-1
+
+        Returns:
+            bool: True iff there is an edge in G between i-th vertex and j-th vertex after sorting them.
+        """
+
+    return G.has_edge(sorted(list(G.nodes()))[i], sorted(list(G.nodes()))[j])
+
+
 def check_if_coloring_legal(g, colors, partial=False):
     """Checks if given coloring is a legal vertex coloring.
 
@@ -71,7 +91,7 @@ def get_nodes_sorted_by_degree(g):
             sorted(list(g.degree(g.nodes())), key=lambda item: item[1], reverse=True)]
 
 
-def nodes_to_delete(g, colors, strategy='max_degree_first'):
+def nodes_to_delete(g, colors, strategy):
     """Given graph and its possibly illegal coloring returns nodes that should be deleted to obtain legal coloring.
 
     Args:
@@ -87,9 +107,19 @@ def nodes_to_delete(g, colors, strategy='max_degree_first'):
 
     if strategy == 'min_vertex_cover':
         nodes_to_delete = nx.algorithms.approximation.min_weighted_vertex_cover(subgraph_illegal_edges)
+    elif strategy == 'arora_kms':
+        nodes_to_delete = subgraph_illegal_edges.nodes()
+    elif strategy == 'arora_kms_prim':
+        nodes_by_degree = get_nodes_sorted_by_degree(subgraph_illegal_edges)
+        while nodes_by_degree:
+            if subgraph_illegal_edges.degree(nodes_by_degree[0]) == 0:
+                break
+            edge_to_delete = list(subgraph_illegal_edges.edges())[0]  # Change to random sample
+            subgraph_illegal_edges.remove_nodes_from(edge_to_delete)
+            nodes_to_delete.extend(edge_to_delete)
+            nodes_by_degree = get_nodes_sorted_by_degree(subgraph_illegal_edges)
     elif strategy == 'max_degree_first':
         nodes_by_degree = get_nodes_sorted_by_degree(subgraph_illegal_edges)
-
         while nodes_by_degree:
             if subgraph_illegal_edges.degree(nodes_by_degree[0]) == 0:
                 break
@@ -114,19 +144,21 @@ def get_lowest_legal_color(graph, vertex, coloring):
     return len(taken_colors)
 
 
-def extract_independent_subset(vertices, edges):
+def extract_independent_subset(vertices, edges, strategy='arora_kms'):
     """Returns subset of vertices that constitute an independent set."""
 
+    ind_set = {}
     subgraph = nx.Graph()
     subgraph.add_nodes_from(vertices)
     subgraph.add_edges_from(edges)
     temp_colors = {v: 0 for v in subgraph.nodes()}
 
-    nodes_to_del = nodes_to_delete(subgraph, temp_colors, strategy='max_degree_first')
+    nodes_to_del = nodes_to_delete(subgraph, temp_colors, strategy)
 
     subgraph.remove_nodes_from(nodes_to_del)
+    ind_set = set(subgraph.nodes())
 
-    return set(subgraph.nodes())
+    return ind_set
 
 
 def show_dendrogram(Z):

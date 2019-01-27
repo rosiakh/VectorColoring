@@ -196,3 +196,19 @@ def clustering_partition_strategy(g, L):
             best_partition = partition
 
     return best_partition
+
+
+def kmeans_clustering_partition_strategy(g, L):
+    from spherecluster import SphericalKMeans
+
+    n = g.number_of_nodes()
+    best_partition = None
+    for k in range(int(0.2 * n) + 1, int(0.5 * n), 5):
+        # clusters = KMeans(n_clusters=k).fit_predict(L)
+        # partition = {n: clusters[v] for v, n in enumerate(sorted(list(g.nodes())))}
+        skm = SphericalKMeans(n_clusters=k).fit(L)
+        partition = {n: skm.labels_[v] for v, n in enumerate(sorted(list(g.nodes())))}
+        if better_partition(g, partition, best_partition):
+            best_partition = partition
+
+    return best_partition
