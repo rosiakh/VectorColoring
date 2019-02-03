@@ -61,7 +61,7 @@ algorithms = []
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='vector_projection',
+    partition_strategy='hyperplane_partition',
     normal_vectors_generation_strategy='orthonormal',
     independent_set_extraction_strategy='arora_kms',
     wigderson_strategy='no_wigderson',
@@ -80,7 +80,7 @@ algorithms.append(VectorColoringAlgorithm(
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='vector_projection',
+    partition_strategy='hyperplane_partition',
     normal_vectors_generation_strategy='random_normal',
     independent_set_extraction_strategy='max_degree_first',
     wigderson_strategy='no_wigderson',
@@ -99,7 +99,7 @@ algorithms.append(VectorColoringAlgorithm(
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
-    find_ind_sets_strategy='random_vector_projection',
+    find_independent_sets_strategy='random_vector_projection',
     independent_set_extraction_strategy='arora_kms_prim',
     wigderson_strategy='recursive_wigderson',
     sdp_type='nonstrict',
@@ -108,7 +108,7 @@ algorithms.append(VectorColoringAlgorithm(
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
-    find_ind_sets_strategy='random_vector_projection',
+    find_independent_sets_strategy='random_vector_projection',
     independent_set_extraction_strategy='arora_kms_prim',
     wigderson_strategy='no_wigderson',
     sdp_type='nonstrict',
@@ -117,7 +117,7 @@ algorithms.append(VectorColoringAlgorithm(
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
-    find_ind_sets_strategy='random_vector_projection',
+    find_independent_sets_strategy='random_vector_projection',
     independent_set_extraction_strategy='arora_kms_prim',
     wigderson_strategy='no_wigderson',
     sdp_type='nonstrict',
@@ -126,7 +126,7 @@ algorithms.append(VectorColoringAlgorithm(
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
-    find_ind_sets_strategy='clustering',
+    find_independent_sets_strategy='clustering',
     independent_set_extraction_strategy='arora_kms_prim',
     wigderson_strategy='no_wigderson',
     sdp_type='nonstrict',
@@ -135,7 +135,7 @@ algorithms.append(VectorColoringAlgorithm(
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
-    find_ind_sets_strategy='random_vector_projection',
+    find_independent_sets_strategy='random_vector_projection',
     independent_set_extraction_strategy='max_degree_first',
     wigderson_strategy='no_wigderson',
     sdp_type='nonstrict',

@@ -16,13 +16,13 @@ partial_color_strategy_map = {
     'color_all_vertices_at_once': color_all_vertices_at_once.color_all_vertices_at_once,
     'color_by_independent_sets': color_by_independent_sets.color_by_independent_sets,
 }
-find_ind_sets_strategy_map = {
+find_independent_sets_strategy_map = {
     'random_vector_projection': color_by_independent_sets.find_ind_set_by_random_vector_projection,
     'clustering': color_by_independent_sets.find_ind_set_by_clustering,
     None: None,
 }
 partition_strategy_map = {
-    'vector_projection': color_all_vertices_at_once.hyperplanes_partition_strategy,
+    'hyperplane_partition': color_all_vertices_at_once.hyperplanes_partition_strategy,
     'clustering': color_all_vertices_at_once.clustering_partition_strategy,
     'kmeans_clustering': color_all_vertices_at_once.kmeans_clustering_partition_strategy,
     None: None,
@@ -49,10 +49,10 @@ class ColoringAlgorithm:
         else:
             self.name = str(self.color_graph)
 
-    def color_graph(self, g, colors=None, verbose=False):
+    def color_graph(self, graph, colors=None, verbose=False):
         """Color graph using self._color_graph and ignoring 'colors' and 'verbose' parameters"""
 
-        return self._color_graph(g)
+        return self._color_graph(graph)
 
     def get_algorithm_name(self):
         return self.name
@@ -65,7 +65,7 @@ class VectorColoringAlgorithm:
                  wigderson_strategy='no_wigderson',
                  partition_strategy=None,
                  normal_vectors_generation_strategy='random_normal',
-                 find_ind_sets_strategy=None,
+                 find_independent_sets_strategy=None,
                  independent_set_extraction_strategy='max_degree_first',
                  sdp_type='nonstrict',
                  alg_name=None):
@@ -73,21 +73,23 @@ class VectorColoringAlgorithm:
 
         # TODO: Check for wrong strategy parameters
 
-        init_params = {}
+        init_params = {
+            'partial_color_strategy': partial_color_strategy_map[partial_color_strategy],
+            'wigderson_strategy': wigderson_strategy_map[wigderson_strategy],
+            'sdp_type': sdp_type,
+            'independent_set_extraction_strategy': independent_set_extraction_strategy,
+            'alg_name': alg_name,
+            'partition_strategy': partition_strategy_map[partition_strategy],
+            'normal_vectors_generation_strategy': normal_vectors_generation_strategy,
+            'find_independent_sets_strategy': find_independent_sets_strategy_map[find_independent_sets_strategy],
+        }
 
-        # TODO: this 'if' is unnecessary but it shows what params are really used in each category
-        if partial_color_strategy == 'color_all_vertices_at_once':
-            init_params['partition_strategy'] = partition_strategy_map[partition_strategy]
-            init_params['independent_set_extraction_strategy'] = independent_set_extraction_strategy
-            init_params['normal_vectors_generation_strategy'] = normal_vectors_generation_strategy
-        elif partial_color_strategy == 'color_by_independent_sets':
-            init_params['find_independent_sets_strategy'] = find_ind_sets_strategy_map[find_ind_sets_strategy]
-            init_params['independent_set_extraction_strategy'] = independent_set_extraction_strategy
 
         self._partially_color_strategy = lambda graph, L, colors: \
-            partial_color_strategy_map[partial_color_strategy](graph, L, colors, init_params)
+            init_params['partial_color_strategy'](graph, L, colors, init_params)
 
-        self._wigderson_strategy = wigderson_strategy_map[wigderson_strategy]
+        self._wigderson_strategy = lambda graph, L, colors: \
+            init_params['wigderson_strategy'](graph, L, colors, init_params)
 
         self._sdp_type = sdp_type
 
