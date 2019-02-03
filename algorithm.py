@@ -17,8 +17,8 @@ partial_color_strategy_map = {
     'color_by_independent_sets': color_by_independent_sets.color_by_independent_sets,
 }
 find_independent_sets_strategy_map = {
-    'random_vector_projection': color_by_independent_sets.find_ind_set_by_random_vector_projection,
-    'clustering': color_by_independent_sets.find_ind_set_by_clustering,
+    'random_vector_projection': color_by_independent_sets.find_ind_sets_by_random_vector_projection,
+    'clustering': color_by_independent_sets.find_ind_sets_by_clustering,
     None: None,
 }
 partition_strategy_map = {

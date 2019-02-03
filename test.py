@@ -26,7 +26,7 @@ logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=loggin
 graphs = []
 
 # graphs.append(nx.powerlaw_cluster_graph(180, 37, 0.3)) # duza przewaga dsatur
-graphs.append(create_erdos_renyi_graph(10, 0.5))  # nie widac roznicy
+graphs.append(create_erdos_renyi_graph(50, 0.5))  # nie widac roznicy
 graphs.append(nx.ring_of_cliques(5, 2))
 # graphs.append(nx.connected_caveman_graph(10,10))
 # graphs.append(nx.random_regular_graph(19, 160))
@@ -59,34 +59,34 @@ graphs.append(nx.ring_of_cliques(5, 2))
 
 algorithms = []
 
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='hyperplane_partition',
-    normal_vectors_generation_strategy='orthonormal',
-    independent_set_extraction_strategy='arora_kms',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='orthonormal hyperplane partition'
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='clustering',
-    independent_set_extraction_strategy='arora_kms_prim',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='clustering hyperplane partition no wigderson'
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='hyperplane_partition',
-    normal_vectors_generation_strategy='random_normal',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random hyperplane partition no wigderson'
-))
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_all_vertices_at_once',
+#     partition_strategy='hyperplane_partition',
+#     normal_vectors_generation_strategy='orthonormal',
+#     independent_set_extraction_strategy='arora_kms',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='orthonormal hyperplane partition'
+# ))
+#
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_all_vertices_at_once',
+#     partition_strategy='clustering',
+#     independent_set_extraction_strategy='arora_kms_prim',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='clustering all vertices'
+# ))
+#
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_all_vertices_at_once',
+#     partition_strategy='hyperplane_partition',
+#     normal_vectors_generation_strategy='random_normal',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='random hyperplane partition'
+# ))
 
 # algorithms.append(VectorColoringAlgorithm( # TODO: lots of bugs in this algorithm
 #     partial_color_strategy='color_allvertices_at_once',
@@ -97,24 +97,24 @@ algorithms.append(VectorColoringAlgorithm(
 #     alg_name='kmeans clustering partition'
 # ))
 
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='arora_kms_prim',
-    wigderson_strategy='recursive_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projection recursive wigderson'
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='arora_kms_prim',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projection no wigderson'
-))
-
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='random_vector_projection',
+#     independent_set_extraction_strategy='arora_kms_prim',
+#     wigderson_strategy='recursive_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='random vector projection recursive wigderson'
+# ))
+#
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='random_vector_projection',
+#     independent_set_extraction_strategy='arora_kms_prim',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='random vector projection'
+# ))
+#
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
     find_independent_sets_strategy='random_vector_projection',
@@ -130,17 +130,17 @@ algorithms.append(VectorColoringAlgorithm(
     independent_set_extraction_strategy='arora_kms_prim',
     wigderson_strategy='no_wigderson',
     sdp_type='nonstrict',
-    alg_name='clustering no wigderson'
+    alg_name='clustering independent sets'
 ))
 
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='multiple ind sets by vector projections'
-))
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='random_vector_projection',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='random vector projections max degree first'
+# ))
 
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))
@@ -148,9 +148,9 @@ algorithms.append(ColoringAlgorithm(
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='DSATUR'), 'dsatur'))
 
-algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_lp(g), 'optimal_coloring_lp'))
-
-algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_dp(g), 'optimal_coloring_dp'))
+# algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_lp(g), 'optimal_coloring_lp'))
+#
+# algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_dp(g), 'optimal_coloring_dp'))
 
 # Run algorithms to obtain colorings
 colorings = {}
