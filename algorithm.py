@@ -1,14 +1,37 @@
 """Module containing main algorithm logic."""
 
+import itertools
+import logging
 import sys
 
 from mosek.fusion import *
 from networkx import Graph
 
-from hyperplane_partition import *
-from vector_projection import *
-from wigderson import *
-import itertools
+import color_all_vertices_at_once
+import color_by_independent_sets
+import wigderson
+from algorithm_helper import *
+
+partial_color_strategy_map = {
+    'color_all_vertices_at_once': color_all_vertices_at_once.color_all_vertices_at_once,
+    'color_by_independent_sets': color_by_independent_sets.color_by_independent_sets,
+}
+find_ind_sets_strategy_map = {
+    'random_vector_projection': color_by_independent_sets.find_ind_set_by_random_vector_projection,
+    'clustering': color_by_independent_sets.find_ind_set_by_clustering,
+    None: None,
+}
+partition_strategy_map = {
+    'vector_projection': color_all_vertices_at_once.hyperplanes_partition_strategy,
+    'clustering': color_all_vertices_at_once.clustering_partition_strategy,
+    'kmeans_clustering': color_all_vertices_at_once.kmeans_clustering_partition_strategy,
+    None: None,
+}
+wigderson_strategy_map = {
+    'no_wigderson': wigderson.no_wigderson_strategy,
+    'recursive_wigderson': wigderson.recursive_wigderson_strategy,
+}
+
 
 class ColoringAlgorithm:
 
@@ -26,10 +49,10 @@ class ColoringAlgorithm:
         else:
             self.name = str(self.color_graph)
 
-    def color_graph(self, G, colors=None, verbose=False):
+    def color_graph(self, g, colors=None, verbose=False):
         """Color graph using self._color_graph and ignoring 'colors' and 'verbose' parameters"""
 
-        return self._color_graph(G)
+        return self._color_graph(g)
 
     def get_algorithm_name(self):
         return self.name
@@ -39,142 +62,81 @@ class VectorColoringAlgorithm:
 
     def __init__(self,
                  partial_color_strategy,
-                 wigderson_strategy,
-                 find_ind_sets_strategy=None,
+                 wigderson_strategy='no_wigderson',
                  partition_strategy=None,
+                 normal_vectors_generation_strategy='random_normal',
+                 find_ind_sets_strategy=None,
+                 independent_set_extraction_strategy='max_degree_first',
+                 sdp_type='nonstrict',
                  alg_name=None):
         """Describe here the interfaces for all those strategies"""
 
-        # Assign partial color strategy
-        if partial_color_strategy == 'hyperplane_partition':
-            if partition_strategy == 'random':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
-                    g,
-                    L,
-                    colors,
-                    partition_strategy=random_partition_strategy)
-            elif partition_strategy == 'orthogonal':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
-                    g,
-                    L,
-                    colors,
-                    partition_strategy=orthogonal_partition_strategy)
-            elif partition_strategy == 'clustering':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
-                    g,
-                    L,
-                    colors,
-                    partition_strategy=clustering_partition_strategy)
-            elif partition_strategy == 'kmeans_clustering':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_hyperplane_partition(
-                    g,
-                    L,
-                    colors,
-                    partition_strategy=kmeans_clustering_partition_strategy)
-            else:
-                raise Exception('Unknown partition strategy')
-        elif partial_color_strategy == 'vector_projection':
-            if find_ind_sets_strategy == 'random_vector_projection':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
-                    g,
-                    L,
-                    colors,
-                    find_ind_sets_strategy=find_ind_set_by_random_vector_projection
-                )
-            elif find_ind_sets_strategy == 'random_vector_projection_kms':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
-                    g,
-                    L,
-                    colors,
-                    find_ind_sets_strategy=find_ind_set_by_random_vector_projection_kms
-                )
-            elif find_ind_sets_strategy == 'random_vector_projection_kms_prim':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
-                    g,
-                    L,
-                    colors,
-                    find_ind_sets_strategy=find_ind_set_by_random_vector_projection_kms_prim
-                )
-            elif find_ind_sets_strategy == 'multiple_random_vector_projection':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
-                    g,
-                    L,
-                    colors,
-                    find_ind_sets_strategy=find_multiple_ind_sets_by_random_vector_projections
-                )
-            elif find_ind_sets_strategy == 'clustering':
-                self._partially_color_strategy = lambda g, L, colors: partially_color_graph_by_vector_projections(
-                    g,
-                    L,
-                    colors,
-                    find_ind_sets_strategy=find_ind_set_by_clustering
-                )
-            else:
-                raise Exception('Unknown find_ind_set_strategy')
-        else:
-            raise Exception('Unknown partial coloring strategy')
+        # TODO: Check for wrong strategy parameters
 
-        # Assign Wigderson strategy
-        if wigderson_strategy == 'no_wigderson':
-            self._wigderson_strategy = no_wigderson_strategy
-        elif wigderson_strategy == 'recursive_wigderson':
-            self._wigderson_strategy = recursive_wigderson_strategy
-        else:
-            raise Exception('Unknown Wigderson strategy')
+        init_params = {}
 
-        # Assign name
+        # TODO: this 'if' is unnecessary but it shows what params are really used in each category
+        if partial_color_strategy == 'color_all_vertices_at_once':
+            init_params['partition_strategy'] = partition_strategy_map[partition_strategy]
+            init_params['independent_set_extraction_strategy'] = independent_set_extraction_strategy
+            init_params['normal_vectors_generation_strategy'] = normal_vectors_generation_strategy
+        elif partial_color_strategy == 'color_by_independent_sets':
+            init_params['find_independent_sets_strategy'] = find_ind_sets_strategy_map[find_ind_sets_strategy]
+            init_params['independent_set_extraction_strategy'] = independent_set_extraction_strategy
+
+        self._partially_color_strategy = lambda graph, L, colors: \
+            partial_color_strategy_map[partial_color_strategy](graph, L, colors, init_params)
+
+        self._wigderson_strategy = wigderson_strategy_map[wigderson_strategy]
+
+        self._sdp_type = sdp_type
+
         if alg_name is not None:
-            self.name = alg_name
+            self._name = alg_name
         else:
-            self.name = "pcs: " + partial_color_strategy + " ws: " + wigderson_strategy
+            self._name = "pcs: " + partial_color_strategy + " ws: " + wigderson_strategy
 
-    def color_graph(self, g, colors=None, verbose=True, precolors=None):
+    def color_graph(self, graph, verbose=False):
         """Colors graph using vector coloring algorithm.
 
         Args:
-            g (Graph): Graph to be colored.
-            colors (dict): Partial coloring of g
+            graph (Graph): Graph to be colored.
             verbose (bool): Set verbosity level e.g. for solver.
-            precolors (dict): Full legal precoloring of graph g.
 
         Returns:
-            dict: Global vertex-color dictionary indexed from 0 to g.number_of_nodes()-1.
+            dict: Global vertex-color dictionary indexed from 0 to graph.number_of_nodes()-1.
         """
 
-        if g.number_of_selfloops() > 0:
-            raise Exception('Graph contains selfloops')
+        if graph.number_of_selfloops() > 0:
+            raise Exception('Graph contains self loops')
 
-        if colors is None:
-            colors = {v: -1 for v in g.nodes()}
-        else:
-            pass  # TODO: Delete colored vertices and edges; change color values to start from 0 continuously
+        colors = {v: -1 for v in graph.nodes()}
 
         logging.info('Starting color_graph procedure on a graph with {0} vertices and {1} edges...'.format(
-            g.number_of_nodes(), g.number_of_edges()))
+            graph.number_of_nodes(), graph.number_of_edges()))
 
-        max_iterations = g.number_of_nodes() * 2  # is it a good boundary?
-        current_g = g.copy()
+        max_iterations = graph.number_of_nodes() * 2  # is it a good boundary?
+        working_graph = graph.copy()
 
         it = 0
-        while (current_g.number_of_nodes() >= 0 and -1 in set(colors.values())) and it < max_iterations:
+        while (working_graph.number_of_nodes() >= 0 and -1 in set(colors.values())) and it < max_iterations:
             it += 1
-            logging.info('\n')
-            logging.info('Starting iteration nr {0} of main loop...'.format(it))
-            if current_g.number_of_nodes() > 1 and current_g.number_of_edges() > 0:
-                L = compute_vector_coloring(current_g, precolors, strict=False, verbose=verbose, iteration=it)
+            logging.info('\nStarting iteration nr {0} of main loop...'.format(it))
+            if working_graph.number_of_nodes() > 1 and working_graph.number_of_edges() > 0:
+                L = compute_vector_coloring(working_graph, sdp_type=self._sdp_type, verbose=verbose, iteration=it)
                 if it == 1:
-                    if self._wigderson_strategy(current_g, colors, L):
+                    if self._wigderson_strategy(working_graph, colors, L):
                         continue  # Wigderson colored some vertices so we need to recompute vector coloring
-                current_nodes = current_g.number_of_nodes()
-                while current_g.number_of_nodes() == current_nodes:
-                    self._partially_color_strategy(current_g, L, colors)
-            elif current_g.number_of_nodes() == 1:
-                colors[list(current_g.nodes())[0]] = get_lowest_legal_color(g, list(current_g.nodes())[0], colors)
-                # colors[list(current_g.nodes())[0]] = max(colors.values()) + 1
+                current_nodes = working_graph.number_of_nodes()
+                while working_graph.number_of_nodes() == current_nodes:
+                    self._partially_color_strategy(working_graph, L, colors)
+            elif working_graph.number_of_nodes() == 1:
+                colors[list(working_graph.nodes())[0]] = get_lowest_legal_color(graph, list(working_graph.nodes())[0],
+                                                                                colors)
                 break
-            elif current_g.number_of_edges() == 0:
+            elif working_graph.number_of_edges() == 0:
                 new_color = max(colors.values()) + 1
-                for v in current_g.nodes():
+                for v in working_graph.nodes():
                     colors[v] = new_color
                 break
             else:
@@ -183,20 +145,22 @@ class VectorColoringAlgorithm:
         return colors
 
     def get_algorithm_name(self):
-        return self.name
+        return self._name
 
 
-def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration=False):
-    """Computes vector coloring on the basis of matrix coloring using Cholesky decomposition.
+def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
+    """Computes sdp_type vector coloring of graph using Cholesky decomposition.
 
         Args:
-            M (2-dim matrix): Matrix-coloring of the graph.
-
+            graph (nx.Graph): Graph to be processed.
+            sdp_type (string): Non-strict, Strict or Strong coloring.
+            verbose (bool): Solver verbosity.
+            iteration (int): Number of main algorithm iteration. Used for vector coloring loading or saving.
         Returns:
               2-dim matrix: Rows of this matrix are vectors of computed vector coloring.
         """
 
-    def cholesky_factorize(m):
+    def cholesky_factorize(M):
         """Returns L such that M = LL^T.
 
             According to https://en.wikipedia.org/wiki/Cholesky_decomposition#Proof_for_positive_semi-definite_matrices
@@ -207,7 +171,7 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
             It sometimes returns an error if M was computed with big tolerance for error.
 
             Args:
-                m (2-dim matrix): Positive semidefinite matrix to be factorized.
+                M (2-dim matrix): Positive semidefinite matrix to be factorized.
 
             Returns:
                 L (2-dim matrix): Cholesky factorization of M such that M = LL^T.
@@ -215,50 +179,43 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
 
         logging.info('Starting Cholesky factorization...')
 
-        eps = 10e-8
-        L = m
+        eps = 1e-7
+        for i in range(M.shape[0]):
+            M[i, i] = M[i, i] + eps
 
-        for i in range(L.shape[0]):
-            L[i, i] = L[i, i] + eps  # TODO: Should I normalize the output vector coloring?
-
-        L = np.linalg.cholesky(L)
-
-        # Probably don't need these lines
-        for i in range(L.shape[0]):
-            for j in range(i + 1, L.shape[0]):
-                L[i, j] = 0
+        M = np.linalg.cholesky(M)
 
         logging.info('Cholesky factorization computed')
-        return L
+        return M
 
-    def compute_matrix_coloring(g, precolors, strict=False, verbose=False):
-        """Finds matrix coloring M of graph g using Mosek solver.
-
-        Maybe we can add epsilon to SDP constraints instead of 'solve' parameters?
-
-        For some reason optimal value of alpha is greater than value computed from M below if SDP is solved with big
-            tolerance for error
+    def compute_matrix_coloring(graph, sdp_type, verbose):
+        """Finds matrix coloring M of graph using Mosek solver.
 
         Args:
-            g (Graph): Graph to be processed.
-            strict (bool): Are we looking for strict vector coloring.
+            graph (nx.Graph): Graph to be processed.
+            sdp_type (string): Non-strict, Strict or Strong vector coloring.
             verbose (bool): Sets verbosity level of solver.
-            precolors (dict): Full legal coloring of graph G used to obtain good starting point for solver.
 
         Returns:
             2-dim matrix: Matrix coloring of graph G.
+
+        Notes:
+            Maybe we can add epsilon to SDP constraints instead of 'solve' parameters?
+
+            For some reason optimal value of alpha is greater than value computed from M below if SDP is solved with big
+                tolerance for error
+
+            TODO: strong vector coloring
         """
 
         logging.info('Computing matrix coloring of graph with {0} nodes and {1} edges...'.format(
-            g.number_of_nodes(), g.number_of_edges()
+            graph.number_of_nodes(), graph.number_of_edges()
         ))
-
-        dsatur_coloring = nx.algorithms.coloring.greedy_color(g, strategy='DSATUR')
 
         with Model() as M:
 
             # Variables
-            n = g.number_of_nodes()
+            n = graph.number_of_nodes()
             alpha = M.variable("alpha", Domain.lessThan(0.))
             m = M.variable(Domain.inPSDCone(n))
 
@@ -266,11 +223,11 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
             M.constraint("C1", m.diag(), Domain.equalsTo(1.0))
             for i in range(n):
                 for j in range(n):
-                    if i > j and has_edge_between_ith_and_jth(g, i, j):
-                        if strict:
+                    if i > j and has_edge_between_ith_and_jth(graph, i, j):
+                        if sdp_type == 'strict':
                             M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
                                          Domain.equalsTo(0.))
-                        else:
+                        elif sdp_type == 'nonstrict':
                             M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
                                          Domain.lessThan(0.))
 
@@ -279,7 +236,6 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
 
             # Set solver parameters
             M.setSolverParam("numThreads", 0)
-
 
             if verbose:
                 M.setLogHandler(sys.stdout)
@@ -295,23 +251,23 @@ def compute_vector_coloring(g, precolors, strict=False, verbose=False, iteration
 
         return result
 
-    # if iteration == 1 and vector_coloring_in_file(g, strict):
-    # l = read_vector_coloring_from_file(g, strict)
+    # if iteration == 1 and vector_coloring_in_file(graph, strict):
+    # L = read_vector_coloring_from_file(graph, strict)
     # else:
-    m = compute_matrix_coloring(g, precolors, strict=False, verbose=False)
-    l = cholesky_factorize(m)
-    if iteration == 1:
-        save_vector_coloring_to_file(g, strict, l)
+    M = compute_matrix_coloring(graph, sdp_type, verbose)
+    L = cholesky_factorize(M)
+    # if iteration == 1:
+    #     save_vector_coloring_to_file(graph, sdp_type, L)
 
-    return l
+    return L
 
 
-def compute_optimal_coloring_lp(g, colors=None, verbose=False):
+def compute_optimal_coloring_lp(graph, verbose=False):
     """Computes optimal coloring using linear programming."""
 
     with Model() as M:
 
-        n = g.number_of_nodes()
+        n = graph.number_of_nodes()
 
         # Variables
         x = M.variable([n, n], Domain.binary())
@@ -327,7 +283,7 @@ def compute_optimal_coloring_lp(g, colors=None, verbose=False):
 
         for i in range(n):
             for j in range(n):
-                if i > j and has_edge_between_ith_and_jth(g, i, j):
+                if i > j and has_edge_between_ith_and_jth(graph, i, j):
                     for k in range(n):
                         M.constraint('D{0}-{1}-{2}'.format(i, j, k), Expr.add(x.index(i, k), x.index(j, k)),
                                      Domain.lessThan(1.0))
@@ -345,7 +301,7 @@ def compute_optimal_coloring_lp(g, colors=None, verbose=False):
 
         coloring = {}
 
-        for i, v in enumerate(sorted(list(g.nodes()))):
+        for i, v in enumerate(sorted(list(graph.nodes()))):
             for c in range(n):
                 if x.index(i, c).level() == 1.0:
                     coloring[v] = c
@@ -354,51 +310,51 @@ def compute_optimal_coloring_lp(g, colors=None, verbose=False):
     return coloring
 
 
-def compute_optimal_coloring_dp(g, colors=None, verbose=False):
+def compute_optimal_coloring_dp(graph, verbose=False):
     """Computes optimal coloring using dynamic programming."""
 
-    T_Sets = {w: [] for r in range(g.number_of_nodes() + 1) for w in itertools.combinations(g.nodes(), r)}
-    T = {w: -1 for r in range(g.number_of_nodes() + 1) for w in itertools.combinations(g.nodes(), r)}  # set(w)
-    T[()] = 0
+    t_sets = {w: [] for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}
+    t = {w: -1 for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}  # set(w)
+    t[()] = 0
 
-    for w in T.keys():
+    for w in t.keys():
         if len(w) == 1:
-            T[w] = 1
-            T_Sets[w] = [w]
+            t[w] = 1
+            t_sets[w] = [w]
 
-    for w in sorted(T.keys(), key=len):
+    for w in sorted(t.keys(), key=len):
         if len(w) <= 1:
             continue
 
-        min_chi = g.number_of_nodes()
+        min_chi = graph.number_of_nodes()
         min_s = []
         subsets = [s for r in range(1, len(w) + 1) for s in itertools.combinations(w, r)]  # non-empty subsets
 
         for s in subsets:
             if len(s) == len(w):
-                g_s = g.subgraph(s)
+                g_s = graph.subgraph(s)
                 if g_s.number_of_edges() > 0:
                     continue
             else:
-                if T[s] > 1:  # S is not independent
+                if t[s] > 1:  # S is not independent
                     continue
 
             temp = list(set(w) - set(s))
             temp.sort()
             temp = tuple(temp)
 
-            if T[temp] < min_chi:
-                min_chi = T[temp]
+            if t[temp] < min_chi:
+                min_chi = t[temp]
                 min_s = s
 
-        T[w] = min_chi + 1
-        T_Sets[w] = min_s
+        t[w] = min_chi + 1
+        t_sets[w] = min_s
 
     # Now compute the coloring
     ind_sets = []
-    vertices = tuple(g.nodes())
+    vertices = tuple(graph.nodes())
     while vertices:
-        i_set = T_Sets[vertices]
+        i_set = t_sets[vertices]
         vertices = tuple(v for v in vertices if v not in i_set)
         ind_sets.append(i_set)
 

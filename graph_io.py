@@ -4,8 +4,8 @@ import os
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import pylab
 import numpy as np
+import pylab
 
 
 def read_graph_from_file(folder_name, graph_name, starting_index=0):
@@ -19,7 +19,7 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
         Graph: networkx.Graph object created from given file with nodes indexed from 0.
     """
 
-    g = nx.Graph()
+    graph = nx.Graph()
 
     filename = 'graph_instances/' + folder_name + '/' + graph_name + '.col'
     with open(filename) as f:
@@ -27,19 +27,19 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
             l = line.split()
             if l[0] == 'p':
                 nr_of_nodes = int(l[2])
-                g.add_nodes_from(range(starting_index, starting_index + nr_of_nodes))
+                graph.add_nodes_from(range(starting_index, starting_index + nr_of_nodes))
             elif l[0] == 'e':
                 try:
                     e1 = int(l[1])
                     e2 = int(l[2])
-                    g.add_edge(e1, e2)
+                    graph.add_edge(e1, e2)
                 except ValueError:
-                    g.add_edge(l[1], l[2])
+                    graph.add_edge(l[1], l[2])
 
     # G = nx.relabel_nodes(G, lambda x: x - 1, copy=False)
-    g.name = graph_name
+    graph.name = graph_name
 
-    return g
+    return graph
 
 
 def draw_graph(g, colors, toConsole=True, toImage=False, filename='graph'):
@@ -88,15 +88,15 @@ def draw_graph(g, colors, toConsole=True, toImage=False, filename='graph'):
         # pylab.show()
 
 
-def display_graph_stats(G):
+def display_graph_stats(graph):
     """Displays some graphs stats.
 
     Args:
-        G (Graph): Graph to display.
+        graph (Graph): Graph to display.
     """
 
-    degrees = dict(G.degree()).values()
-    n = G.number_of_nodes()
+    degrees = dict(graph.degree()).values()
+    n = graph.number_of_nodes()
     max_degree = max(degrees)
     min_degree = min(degrees)
     avg_degree = np.average(degrees)
@@ -106,5 +106,5 @@ def display_graph_stats(G):
     print '     max degree:', max_degree
     print '     avg degree:', avg_degree
     print '     min degree:', min_degree
-    print '     number of edges:', G.number_of_edges()
-    print '     edge density:', float(G.number_of_edges()) / float((n * (n - 1) / 2))
+    print '     number of edges:', graph.number_of_edges()
+    print '     edge density:', float(graph.number_of_edges()) / float((n * (n - 1) / 2))

@@ -1,22 +1,23 @@
-import networkx.algorithms.approximation
-import networkx as nx
 import logging
+
+import networkx.algorithms.approximation
+
 import algorithm
 from algorithm_helper import *
 
 
-def max_ind_set_wigderson_strategy(g, colors, L):
+def max_ind_set_wigderson_strategy(graph, colors, L):
     """Colors some of the nodes using Wigderson technique.
 
         Args:
-            g (graph): Graph to be processed.
+            graph (graph): Graph to be processed.
             colors (dict): Global vertex-color dictionary.
-            threshold_degree (int): Lower boundary for degree of processed nodes of g.
+            threshold_degree (int): Lower boundary for degree of processed nodes of graph.
         """
 
     print '\n starting Wigderson algorithm:'
     print '     threshold deg:', threshold_degree
-    max_degree = max(dict(g.degree()).values())
+    max_degree = max(dict(graph.degree()).values())
     iterations = 0
     while max_degree > threshold_degree:
         iterations += 1
@@ -25,12 +26,12 @@ def max_ind_set_wigderson_strategy(g, colors, L):
 
         # Find any vertex with degree equal to max_degree.
         max_vertex = 0
-        for v in dict(g.degree()):
-            if g.degree()[v] == max_degree:
+        for v in dict(graph.degree()):
+            if graph.degree()[v] == max_degree:
                 max_vertex = v
                 break
 
-        neighbors_subgraph = g.subgraph(g.neighbors(max_vertex))
+        neighbors_subgraph = graph.subgraph(graph.neighbors(max_vertex))
 
         # Find large independent set in neighbors subgraph using approximate maximum independent set algorithm.
         # Can we find this large independent set using our algorithm recursively?
@@ -41,19 +42,19 @@ def max_ind_set_wigderson_strategy(g, colors, L):
             colors[v] = min_available_color
 
         # Remove nodes that have just been colored
-        g.remove_nodes_from(max_ind_set)
-        max_degree = max(dict(g.degree()).values())
+        graph.remove_nodes_from(max_ind_set)
+        max_degree = max(dict(graph.degree()).values())
 
     return True
 
 
-def recursive_wigderson_strategy(g, colors, L):
+def recursive_wigderson_strategy(graph, colors, L):
     """Colors some of the nodes using Wigderson technique.
 
     Args:
-        g (graph): Graph to be processed.
+        graph (graph): Graph to be processed.
         colors (dict): Global vertex-color dictionary.
-        threshold_degree (int): Lower boundary for degree of processed nodes of g.
+        threshold_degree (int): Lower boundary for degree of processed nodes of graph.
 
     Returns:
         bool: Returns true if it is not an empty function.
@@ -63,24 +64,24 @@ def recursive_wigderson_strategy(g, colors, L):
 
     logging.info('Starting Wigderson technique...')
 
-    k = find_number_of_vector_colors_from_vector_coloring(g, L)
-    n = g.number_of_nodes()
-    max_degree = max(dict(g.degree()).values())
+    k = find_number_of_vector_colors_from_vector_coloring(graph, L)
+    n = graph.number_of_nodes()
+    max_degree = max(dict(graph.degree()).values())
     threshold_degree = pow(n, (k - 1) / k)
     it = 0
-    while max_degree > threshold_degree and g.number_of_nodes() > 25:
+    while max_degree > threshold_degree and graph.number_of_nodes() > 25:
         it += 1
 
         # Find any vertex with degree equal to max_degree.
         max_vertex = 0
-        for v in dict(g.degree()):
-            if g.degree()[v] == max_degree:
+        for v in dict(graph.degree()):
+            if graph.degree()[v] == max_degree:
                 max_vertex = v
                 break
 
         neighbors_subgraph = nx.Graph()
-        neighbors_subgraph.add_nodes_from(g.neighbors(max_vertex))
-        neighbors_subgraph.add_edges_from(g.subgraph(g.neighbors(max_vertex)).edges())
+        neighbors_subgraph.add_nodes_from(graph.neighbors(max_vertex))
+        neighbors_subgraph.add_edges_from(graph.subgraph(graph.neighbors(max_vertex)).edges())
         alg = algorithm.VectorColoringAlgorithm(
             partial_color_strategy='vector_projection',
             find_ind_sets_strategy='random_vector_projection',
@@ -91,11 +92,11 @@ def recursive_wigderson_strategy(g, colors, L):
             colors[v] = neighbors_colors[v]
 
         # Remove nodes that have just been colored
-        g.remove_nodes_from(neighbors_subgraph.nodes())
-        max_degree = max(dict(g.degree()).values())
+        graph.remove_nodes_from(neighbors_subgraph.nodes())
+        max_degree = max(dict(graph.degree()).values())
 
     return it > 0
 
 
-def no_wigderson_strategy(g, colors, L):
+def no_wigderson_strategy(graph, colors, L):
     return False

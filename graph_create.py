@@ -17,13 +17,13 @@ def create_kneser_graph(m):
             if i < j and len(set(vertices[i]) & set(vertices[j])) < t:
                 edges.append((vertices[i], vertices[j]))
 
-    g = nx.Graph()
-    g.add_nodes_from(vertices)
-    g.add_edges_from(edges)
+    graph = nx.Graph()
+    graph.add_nodes_from(vertices)
+    graph.add_edges_from(edges)
 
-    g.name = 'Kneser graph {0}'.format(m)
+    graph.name = 'Kneser graph {0}'.format(m)
 
-    return g
+    return graph
 
 
 def create_k_colorable_graph(k, n, p, cluster_by_modulo=False):
@@ -55,13 +55,13 @@ def create_k_colorable_graph(k, n, p, cluster_by_modulo=False):
                 if random.random() < p:
                     edges.append((i, j))
 
-    g = nx.Graph()
-    g.add_nodes_from(vertices)
-    g.add_edges_from(edges)
+    graph = nx.Graph()
+    graph.add_nodes_from(vertices)
+    graph.add_edges_from(edges)
 
-    g.name = 'graph with {0}v in {1} clusters and {2} edge prob'.format(n, k, p)
+    graph.name = 'graph with {0}v in {1} clusters and {2} edge prob'.format(n, k, p)
 
-    return g
+    return graph
 
 
 def create_k_cycle(k, n):
@@ -79,13 +79,13 @@ def create_k_cycle(k, n):
             if 0 < ((i - j) % n) <= k:
                 edges.append((i, j))
 
-    g = nx.Graph()
-    g.add_nodes_from(vertices)
-    g.add_edges_from(edges)
+    graph = nx.Graph()
+    graph.add_nodes_from(vertices)
+    graph.add_edges_from(edges)
 
-    g.name = '{0}-cycle graph {1}v'.format(k, n)
+    graph.name = '{0}-cycle graph {1}v'.format(k, n)
 
-    return g
+    return graph
 
 
 def create_crown_graph(n):
@@ -96,30 +96,30 @@ def create_crown_graph(n):
             if abs(i - j) != n:
                 edges.append((i, j))
 
-    g = nx.Graph()
-    g.add_nodes_from(vertices)
-    g.add_edges_from(edges)
+    graph = nx.Graph()
+    graph.add_nodes_from(vertices)
+    graph.add_edges_from(edges)
 
-    g.name = 'crown graph {0}n'.format(n)
-    return g
+    graph.name = 'crown graph {0}n'.format(n)
+    return graph
 
 
 def create_erdos_renyi_graph_edges(vertices, edges):
     """Creates random graph of type networkx.dense_gnm_random_graph."""
 
-    G = nx.dense_gnm_random_graph(vertices, edges)
-    G.name = 'dense_random_graph_{0}n_{1}e'.format(vertices, edges)
+    graph = nx.dense_gnm_random_graph(vertices, edges)
+    graph.name = 'dense_random_graph_{0}n_{1}e'.format(vertices, edges)
 
-    return G
+    return graph
 
 
 def create_erdos_renyi_graph(n, p):
     """Creates random graph of type networkx.erdos_renyi_graph."""
 
-    G = nx.erdos_renyi_graph(n, p)
-    G.name = 'erdos_renyi_graph_{0}n_{1}p'.format(n, p)
+    graph = nx.erdos_renyi_graph(n, p)
+    graph.name = 'erdos_renyi_graph_{0}n_{1}p'.format(n, p)
 
-    return G
+    return graph
 
 
 def create_watts_strogatz_graph(n, k, p):
@@ -131,10 +131,10 @@ def create_watts_strogatz_graph(n, k, p):
         p (float): the probability of rewiring each edge
     """
 
-    G = nx.connected_watts_strogatz_graph(n, k, p)
-    G.name = 'watts_strogatz_graph_{0}n_{1}k_{2}p'.format(n, k, p)
+    graph = nx.connected_watts_strogatz_graph(n, k, p)
+    graph.name = 'watts_strogatz_graph_{0}n_{1}k_{2}p'.format(n, k, p)
 
-    return G
+    return graph
 
 
 def create_barabasi_albert_graph(n, m):
@@ -144,10 +144,10 @@ def create_barabasi_albert_graph(n, m):
         m (int): number of edges to attach from a new node to existing nodes
     """
 
-    G = nx.dense_gnm_random_graph(n, m)
-    G.name = 'barabasi_albert_graph_{0}n_{1}m'.format(n, m)
+    graph = nx.dense_gnm_random_graph(n, m)
+    graph.name = 'barabasi_albert_graph_{0}n_{1}m'.format(n, m)
 
-    return G
+    return graph
 
 
 def create_set_of_random_graphs(
