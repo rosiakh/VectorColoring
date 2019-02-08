@@ -87,7 +87,7 @@ def color_by_independent_sets(graph, L, colors, init_params):
 
         return 1
 
-    logging.info('Looking for independent sets using vector projections strategy...')
+    logging.info('Looking for independent sets...')
 
     # TODO: strategy of determining how many sets to get at once from find_ind_set_strategy
 
@@ -108,23 +108,6 @@ def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=
 
     Tries to return nr_of_sets but might return less.
     """
-
-    def better_subgraph(subg_v1, subg_e1, subg_v2, subg_e2):
-        """Returns True if subg1 is a better subgraph than subg2. Subgraph1 is represented by its vertices and edges.
-            subg_v1 and subg_e1."""
-
-        if subg_v2 is None or len(subg_v2) == 0:
-            return True
-
-        if subg_v1 is None or len(subg_v1) == 0:
-            return False
-
-        ind_set1 = extract_independent_subset(
-            subg_v1, subg_e1, strategy=init_params['independent_set_extraction_strategy'])
-        ind_set2 = extract_independent_subset(
-            subg_v2, subg_e2, strategy=init_params['independent_set_extraction_strategy'])
-
-        return len(ind_set1) > len(ind_set2)
 
     def compute_c_opt(g, L):
         """Computes optimal c parameter according to KMS.

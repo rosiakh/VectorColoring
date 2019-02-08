@@ -174,7 +174,7 @@ def clustering_partition_strategy(graph, L, init_params):
     return best_partition
 
 
-def kmeans_clustering_partition_strategy(graph, L):
+def kmeans_clustering_partition_strategy(graph, L, init_params):
     from spherecluster import SphericalKMeans
 
     n = graph.number_of_nodes()

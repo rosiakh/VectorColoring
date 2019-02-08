@@ -140,17 +140,16 @@ def get_lowest_legal_color(graph, vertex, coloring):
         in coloring."""
 
     taken_colors = {coloring[v] for v in graph.neighbors(vertex)}
-    for clr in range(0, graph.number_of_nodes()):
-        if clr not in taken_colors:
-            return clr
+    for color in range(0, graph.number_of_nodes()):
+        if color not in taken_colors:
+            return color
 
     return len(taken_colors)
 
 
-def extract_independent_subset(vertices, edges, strategy='arora_kms'):
+def extract_independent_subset(vertices, edges, strategy='max_degree_first'):
     """Returns subset of vertices that constitute an independent set."""
 
-    ind_set = {}
     subgraph = nx.Graph()
     subgraph.add_nodes_from(vertices)
     subgraph.add_edges_from(edges)

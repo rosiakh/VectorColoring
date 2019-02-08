@@ -38,15 +38,16 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
 
     # G = nx.relabel_nodes(G, lambda x: x - 1, copy=False)
     graph.name = graph_name
+    graph.family = graph.name
 
     return graph
 
 
-def draw_graph(g, colors, toConsole=True, toImage=False, filename='graph'):
+def draw_graph(graph, colors, toConsole=True, toImage=False, filename='graph'):
     """Draws graph and saves image to file.
 
     Args:
-        g (Graph): Graph to be drawn.
+        graph (Graph): Graph to be drawn.
         colors (dict): Global vertex-color dictionary.
         filename (str): File to save.
     """
@@ -65,19 +66,19 @@ def draw_graph(g, colors, toConsole=True, toImage=False, filename='graph'):
         print 'number of colors used:', len(set(colors_list))
         # print 'bin colors: ', [bin(colors[v]) for v in range(0, G.number_of_nodes() + 0)]
     else:
-        colors_list = [1] * g.number_of_nodes()
+        colors_list = [1] * graph.number_of_nodes()
 
     if toConsole:
-        print 'name:', g.name
-        print 'number of nodes:', g.number_of_nodes()
-        print 'number of edges:', g.number_of_edges()
+        print 'name:', graph.name
+        print 'number of nodes:', graph.number_of_nodes()
+        print 'number of edges:', graph.number_of_edges()
         # print 'edges:', G.edges()
 
     if toImage:
-        node_labels = {v: str(v + 0) for v in range(g.number_of_nodes())}
+        node_labels = {v: str(v + 0) for v in range(graph.number_of_nodes())}
         fig = pylab.figure(figsize=(11, 8))
 
-        nx.draw(g, pos=nx.circular_layout(g), with_labels=True, node_color=colors_list, cmap=plt.cm.Spectral,
+        nx.draw(graph, pos=nx.circular_layout(graph), with_labels=True, node_color=colors_list, cmap=plt.cm.Spectral,
                 labels=node_labels)
 
         # hide axis

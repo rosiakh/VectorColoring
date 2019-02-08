@@ -3,31 +3,23 @@
 Usage: python test.py
 """
 
+from timeit import default_timer as timer
+
 from algorithm import *
 from graph_create import *
-
-
-def display_results_on_console(colorings):
-    """Displays results of the coloring algorithms to stdout."""
-
-    for g in colorings:
-        print 'Graph: {0}'.format(g.name)
-        for (alg_name, alg_coloring) in colorings[g]:
-            if (not check_if_coloring_legal(g, alg_coloring)):
-                print '\tColoring obtained by {0} is not legal'.format(alg_name)
-            else:
-                print '\talgorithm: {0:50} colors: {1}'.format(alg_name, str(len(set(alg_coloring.values()))))
-
+from graph_io import *
+from results_processing import *
 
 # Logging configuration
-logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=logging.INFO, datefmt='%I:%M:%S')
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO, datefmt='%I:%M:%S')
 
 # Test graph creation
 graphs = []
 
 # graphs.append(nx.powerlaw_cluster_graph(180, 37, 0.3)) # duza przewaga dsatur
-graphs.append(create_erdos_renyi_graph(50, 0.5))  # nie widac roznicy
-graphs.append(nx.ring_of_cliques(5, 2))
+graphs.append(create_erdos_renyi_graph(10, 0.5))  # nie widac roznicy
+graphs.append(create_barabasi_albert_graph(20, 20))
+# graphs.append(nx.ring_of_cliques(5, 2))
 # graphs.append(nx.connected_caveman_graph(10,10))
 # graphs.append(nx.random_regular_graph(19, 160))
 # graphs.append(nx.circular_ladder_graph(140))
@@ -50,29 +42,28 @@ graphs.append(nx.ring_of_cliques(5, 2))
 # graphs.append(nx.mycielski_graph(8))
 # graphs.append(nx.random_partition_graph([x for x in range(15, 23)], 0.9, 0.2))
 
-# graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
+graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
 # graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
 # graphs.append(read_graph_from_file("dimacs", "DSJC1000.1", starting_index=1))
 
 # graphs.append(create_k_cycle(4, 20))
-# graphs.append(create_erdos_renyi_graph_edges(20, 5*13))
 
 algorithms = []
 
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_all_vertices_at_once',
-#     partition_strategy='hyperplane_partition',
-#     normal_vectors_generation_strategy='orthonormal',
-#     independent_set_extraction_strategy='arora_kms',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='orthonormal hyperplane partition'
-# ))
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_all_vertices_at_once',
+    partition_strategy='hyperplane_partition',
+    normal_vectors_generation_strategy='orthonormal',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='orthonormal hyperplane partition'
+))
 #
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='color_all_vertices_at_once',
 #     partition_strategy='clustering',
-#     independent_set_extraction_strategy='arora_kms_prim',
+#     independent_set_extraction_strategy='max_degree_first',
 #     wigderson_strategy='no_wigderson',
 #     sdp_type='nonstrict',
 #     alg_name='clustering all vertices'
@@ -87,16 +78,7 @@ algorithms = []
 #     sdp_type='nonstrict',
 #     alg_name='random hyperplane partition'
 # ))
-
-# algorithms.append(VectorColoringAlgorithm( # TODO: lots of bugs in this algorithm
-#     partial_color_strategy='color_allvertices_at_once',
-#     partition_strategy='kmeans_clustering',
-#    independent_set_extraction_strategy='arora_kms_prim',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type = 'nonstrict',
-#     alg_name='kmeans clustering partition'
-# ))
-
+#
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='color_by_independent_sets',
 #     find_independent_sets_strategy='random_vector_projection',
@@ -109,30 +91,39 @@ algorithms = []
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='color_by_independent_sets',
 #     find_independent_sets_strategy='random_vector_projection',
-#     independent_set_extraction_strategy='arora_kms_prim',
+#     independent_set_extraction_strategy='max_degree_first',
 #     wigderson_strategy='no_wigderson',
 #     sdp_type='nonstrict',
 #     alg_name='random vector projection'
 # ))
+# #
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='random_vector_projection',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='random vector projection kms\''
+# ))
 #
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='arora_kms_prim',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projection kms\' no wigderson'
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='clustering',
-    independent_set_extraction_strategy='arora_kms_prim',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='clustering independent sets'
-))
-
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='random_vector_projection',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='strong',
+#     alg_name='random vector projection kms\' strong'
+# ))
+#
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='clustering',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='clustering independent sets'
+# ))
+#
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='color_by_independent_sets',
 #     find_independent_sets_strategy='random_vector_projection',
@@ -153,19 +144,39 @@ algorithms.append(ColoringAlgorithm(
 # algorithms.append(ColoringAlgorithm(lambda g: compute_optimal_coloring_dp(g), 'optimal_coloring_dp'))
 
 # Run algorithms to obtain colorings
-colorings = {}
+repetitions_per_graph = 1
+algorithm_results = {}  # Dictionary - graph: list of RunResults (one result per algorithm)
 for graph in graphs:
-    colorings[graph] = []
+
+    algorithm_results[graph] = []
     for alg in algorithms:
         logging.info("Graph: {0:30} algorithm: {1:50} computing ...".format(graph.name, alg.get_algorithm_name()))
-        colorings[graph].append((alg.get_algorithm_name(), alg.color_graph(graph, verbose=False)))
+        nrs_of_colors = []
+        times = []
+        graph_colorings = []
+        for iteration in range(repetitions_per_graph):
+            start = timer()
+            coloring = alg.color_graph(graph, verbose=False)
+            end = timer()
+            times.append(end - start)
+            graph_colorings.append(coloring)
+
+        results = RunResults()
+        results.algorithm = alg
+        results.average_time = np.mean(times)
+        results.best_coloring = min(graph_colorings, key=lambda coloring: len(set(coloring.values())))
+        results.average_nr_of_colors = np.mean([len(set(coloring.values())) for coloring in graph_colorings])
+        results.repetitions = repetitions_per_graph
+
+        algorithm_results[graph].append(results)
+
 
 logging.shutdown()
 
 # Check if colorings are legal
-for graph in colorings:
-    for (alg_name, alg_coloring) in colorings[graph]:
-        if not check_if_coloring_legal(graph, alg_coloring):
-            raise Exception('Coloring obtained by {0} on {1} is not legal'.format(alg_name, graph.name))
+for graph in algorithm_results:
+    for results in algorithm_results[graph]:
+        if not check_if_coloring_legal(graph, results.best_coloring):
+            raise Exception('Coloring obtained by {0} on {1} is not legal'.format(results.algorithm.name, graph.name))
 
-display_results_on_console(colorings)
+save_algorithm_run_data_to_file(algorithm_results)

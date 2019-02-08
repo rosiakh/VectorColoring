@@ -84,12 +84,18 @@ class VectorColoringAlgorithm:
             'find_independent_sets_strategy': find_independent_sets_strategy_map[find_independent_sets_strategy],
         }
 
+        # All values are strings; needed for recursive VectorColoringAlgorithm creation
+        self._literal_init_params = init_params.copy()
+        self._literal_init_params['partial_color_strategy'] = partial_color_strategy
+        self._literal_init_params['wigderson_strategy'] = wigderson_strategy
+        self._literal_init_params['partition_strategy'] = partition_strategy
+        self._literal_init_params['find_independent_sets_strategy'] = find_independent_sets_strategy
 
         self._partially_color_strategy = lambda graph, L, colors: \
             init_params['partial_color_strategy'](graph, L, colors, init_params)
 
         self._wigderson_strategy = lambda graph, L, colors: \
-            init_params['wigderson_strategy'](graph, L, colors, init_params)
+            init_params['wigderson_strategy'](graph, L, colors, init_params, self._literal_init_params)
 
         self._sdp_type = sdp_type
 
@@ -226,12 +232,16 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
             for i in range(n):
                 for j in range(n):
                     if i > j and has_edge_between_ith_and_jth(graph, i, j):
-                        if sdp_type == 'strict':
+                        if sdp_type == 'strict' or sdp_type == 'strong':
                             M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
                                          Domain.equalsTo(0.))
                         elif sdp_type == 'nonstrict':
                             M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
                                          Domain.lessThan(0.))
+                    elif i > j and sdp_type == 'strong':
+                        M.constraint('C{0}-{1}'.format(i, j), Expr.add(m.index(i, j), alpha),
+                                     Domain.greaterThan(0.))
+
 
             # Objective
             M.objective(ObjectiveSense.Minimize, alpha)

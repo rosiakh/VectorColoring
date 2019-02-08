@@ -48,7 +48,7 @@ def max_ind_set_wigderson_strategy(graph, colors, L, init_params):
     return True
 
 
-def recursive_wigderson_strategy(graph, colors, L, init_params):
+def recursive_wigderson_strategy(graph, colors, L, init_params, literal_init_params):
     """Colors some of the nodes using Wigderson technique.
 
     Args:
@@ -83,14 +83,14 @@ def recursive_wigderson_strategy(graph, colors, L, init_params):
         neighbors_subgraph.add_nodes_from(graph.neighbors(max_vertex))
         neighbors_subgraph.add_edges_from(graph.subgraph(graph.neighbors(max_vertex)).edges())
         alg = algorithm.VectorColoringAlgorithm(
-            partial_color_strategy=init_params['partial_color_strategy'],
-            partition_strategy=init_params['partition_strategy'],
-            find_independent_sets_strategy=init_params['find_independent_sets_strategy'],
-            normal_vectors_generation_strategy=init_params['normal_vectors_generation_strategy'],
-            independent_set_extraction_strategy=init_params['independent_set_extraction_strategy'],
-            wigderson_strategy=init_params['wigderson_strategy'],
-            sdp_type=init_params['sdp_type'],
-            alg_name=init_params['alg_name']
+            partial_color_strategy=literal_init_params['partial_color_strategy'],
+            partition_strategy=literal_init_params['partition_strategy'],
+            find_independent_sets_strategy=literal_init_params['find_independent_sets_strategy'],
+            normal_vectors_generation_strategy=literal_init_params['normal_vectors_generation_strategy'],
+            independent_set_extraction_strategy=literal_init_params['independent_set_extraction_strategy'],
+            wigderson_strategy=literal_init_params['wigderson_strategy'],
+            sdp_type=literal_init_params['sdp_type'],
+            alg_name=literal_init_params['alg_name']
         )
         neighbors_colors = alg.color_graph(neighbors_subgraph)
         for v in neighbors_subgraph.nodes():
@@ -103,5 +103,5 @@ def recursive_wigderson_strategy(graph, colors, L, init_params):
     return it > 0
 
 
-def no_wigderson_strategy(graph, colors, L, init_params):
+def no_wigderson_strategy(graph, colors, L, init_params, literal_init_params):
     return False
