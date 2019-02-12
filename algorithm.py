@@ -249,10 +249,13 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
             # Set solver parameters
             M.setSolverParam("numThreads", 0)
 
-            if verbose:
-                M.setLogHandler(sys.stdout)
+            folder_name = '/home/hubert/VectorColoring/'
+            filename = 'logs'
+            with open(folder_name + filename, 'w') as outfile:
+                if verbose:
+                    M.setLogHandler(outfile)
 
-            M.solve()
+                M.solve()
 
             alpha_opt = alpha.level()[0]
             level = m.level()

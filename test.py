@@ -6,20 +6,20 @@ Usage: python test.py
 from timeit import default_timer as timer
 
 from algorithm import *
-from graph_create import *
 from graph_io import *
 from results_processing import *
 
 # Logging configuration
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO, datefmt='%I:%M:%S')
+logging.basicConfig(format='%(message)s', level=logging.INFO, datefmt='%I:%M:%S')
 
 # Test graph creation
 graphs = []
 
 # graphs.append(nx.powerlaw_cluster_graph(180, 37, 0.3)) # duza przewaga dsatur
-graphs.append(create_erdos_renyi_graph(10, 0.5))  # nie widac roznicy
-graphs.append(create_barabasi_albert_graph(20, 20))
-# graphs.append(nx.ring_of_cliques(5, 2))
+# graphs.append(create_erdos_renyi_graph(n=10, p=0.5))  # nie widac roznicy
+# graphs.append(create_barabasi_albert_graph(n=20, m=20))
+# graphs.append(create_watts_strogatz_graph(30, 6, 0.6))
+# graphs.append(nx.ring_of_cliques(10, 7))
 # graphs.append(nx.connected_caveman_graph(10,10))
 # graphs.append(nx.random_regular_graph(19, 160))
 # graphs.append(nx.circular_ladder_graph(140))
@@ -43,7 +43,7 @@ graphs.append(create_barabasi_albert_graph(20, 20))
 # graphs.append(nx.random_partition_graph([x for x in range(15, 23)], 0.9, 0.2))
 
 graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
-# graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
+graphs.append(read_graph_from_file("dimacs", "DSJC125.9", starting_index=1))
 # graphs.append(read_graph_from_file("dimacs", "DSJC1000.1", starting_index=1))
 
 # graphs.append(create_k_cycle(4, 20))
@@ -145,38 +145,41 @@ algorithms.append(ColoringAlgorithm(
 
 # Run algorithms to obtain colorings
 repetitions_per_graph = 1
-algorithm_results = {}  # Dictionary - graph: list of RunResults (one result per algorithm)
-for graph in graphs:
-
-    algorithm_results[graph] = []
-    for alg in algorithms:
-        logging.info("Graph: {0:30} algorithm: {1:50} computing ...".format(graph.name, alg.get_algorithm_name()))
+algorithms_results = {}  # Dictionary - graph: list of RunResults (one result per algorithm)
+folder_name_seed = 'algorithm_run_' + datetime.datetime.now().strftime("%m-%d_%H-%M-%S") + '/'
+for graph_counter, graph in enumerate(graphs):
+    algorithms_results[graph] = []
+    for alg_counter, alg in enumerate(algorithms):
+        logging.info("\nComputing graph: {0} ({2}/{3}), algorithm: {1} ({4}/{5}) ...\n".format(
+            graph.name, alg.get_algorithm_name(), graph_counter + 1, len(graphs), alg_counter + 1, len(algorithms)))
         nrs_of_colors = []
         times = []
         graph_colorings = []
         for iteration in range(repetitions_per_graph):
             start = timer()
-            coloring = alg.color_graph(graph, verbose=False)
+            coloring = alg.color_graph(graph, verbose=True)
             end = timer()
             times.append(end - start)
             graph_colorings.append(coloring)
 
         results = RunResults()
+        results.graph = graph
         results.algorithm = alg
         results.average_time = np.mean(times)
         results.best_coloring = min(graph_colorings, key=lambda coloring: len(set(coloring.values())))
         results.average_nr_of_colors = np.mean([len(set(coloring.values())) for coloring in graph_colorings])
         results.repetitions = repetitions_per_graph
 
-        algorithm_results[graph].append(results)
+        algorithms_results[graph].append(results)
+        logging.info("Done graph: {0}, algorithm: {1}, colors: {2}, time: {3:6.2f} s ...\n".format(
+            graph.name, alg.get_algorithm_name(), len(set(results.best_coloring.values())), results.average_time))
+    save_graph_run_data_to_file(algorithms_results[graph], graph, folder_name_seed)
 
 
 logging.shutdown()
 
 # Check if colorings are legal
-for graph in algorithm_results:
-    for results in algorithm_results[graph]:
+for graph in algorithms_results:
+    for results in algorithms_results[graph]:
         if not check_if_coloring_legal(graph, results.best_coloring):
             raise Exception('Coloring obtained by {0} on {1} is not legal'.format(results.algorithm.name, graph.name))
-
-save_algorithm_run_data_to_file(algorithm_results)

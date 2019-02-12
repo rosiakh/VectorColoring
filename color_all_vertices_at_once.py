@@ -81,8 +81,6 @@ def color_all_vertices_at_once(graph, L, colors, init_params):
 
         graph.remove_nodes_from(nodes_to_color)
 
-        logging.info('There are {0} vertices left to color'.format(graph.number_of_nodes()))
-
     logging.info('Looking for partial coloring using all_vertices_at_once strategy...')
 
     best_partition = None
@@ -93,6 +91,8 @@ def color_all_vertices_at_once(graph, L, colors, init_params):
             best_partition = partition
 
     update_colors_and_graph(graph, colors, best_partition)
+
+    logging.info('Partial coloring found. There are {0} vertices left to color'.format(graph.number_of_nodes()))
 
 
 def hyperplanes_partition_strategy(graph, L, init_params):

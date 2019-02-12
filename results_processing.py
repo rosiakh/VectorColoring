@@ -18,40 +18,49 @@ if not os.path.exists(vc_dirname):
 
 
 class RunResults:
-    pass
+
+    def __init__(self):
+        self.graph = None
+        self.algorithm = None
+        self.average_time = -1
+        self.best_coloring = None
+        self.average_nr_of_colors = -1
+        self.repetitions = -1
 
 
-def save_algorithm_run_data_to_file(algorithms_results):
-    """Saves all relevant data_to_save from each algorithm run to file.
+def save_graph_run_data_to_file(graph_results, graph,
+                                folder_name_seed='algorithm_run_' + datetime.datetime.now().strftime(
+                                    "%m-%d_%H-%M-%S") + '/'):
+    """Saves results of one algorithm on one graph.
 
     Args:
-        algorithms_results (dict): Key: nx.Graph - value: list of RunResults.
+        graph_results (list of RunResults): algorithm results for graph
     """
 
-    folder_name = vc_dirname + 'algorithm_run_' + datetime.datetime.now().strftime("%m-%d_%H-%M-%S") + '/'
+    folder_name = vc_dirname + folder_name_seed
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
-    for graph in algorithms_results:
-        filename = graph.name + '_' + datetime.datetime.now().strftime("%M-%S") + '.json'
-        with open(folder_name + filename, 'w') as outfile:
-            data_to_save = []
-            for results in algorithms_results[graph]:  # One result per algorithm
-                algorithm_data_to_save = {
-                    'graph_name': graph.name,
-                    'graph_family': graph.name,  # TODO
-                    'graph_nr_of_vertices': graph.number_of_nodes(),
-                    'graph_density': nx.classes.density(graph),
-                    'avg_nr_of_colors': results.average_nr_of_colors,
-                    'min_nr_of_colors': len(set(results.best_coloring.values())),
-                    'algorithm_name': results.algorithm.get_algorithm_name(),
-                    'avg_time': results.average_time,
-                    'params': 'params' if isinstance(results.algorithm, VectorColoringAlgorithm) else 'na',  # TODO
-                    'init_params': results.algorithm._literal_init_params if
-                    isinstance(results.algorithm, VectorColoringAlgorithm) else 'na'
-                }
-                data_to_save.append(algorithm_data_to_save)
-            json.dump(data_to_save, outfile, ensure_ascii=False, indent=4, sort_keys=True)
+    filename = graph.name + '_' + datetime.datetime.now().strftime("%M-%S") + '.json'
+    with open(folder_name + filename, 'w') as outfile:
+        data_to_save = []
+        for algorithm_run_data in graph_results:
+            algorithm_data_to_save = {
+                'graph_name': graph.name,
+                'graph_family': graph.name,  # TODO
+                'graph_nr_of_vertices': graph.number_of_nodes(),
+                'graph_density': nx.classes.density(graph),
+                'avg_nr_of_colors': algorithm_run_data.average_nr_of_colors,
+                'min_nr_of_colors': len(set(algorithm_run_data.best_coloring.values())),
+                'algorithm_name': algorithm_run_data.algorithm.get_algorithm_name(),
+                'avg_time': algorithm_run_data.average_time,
+                'params': 'params' if isinstance(algorithm_run_data.algorithm, VectorColoringAlgorithm) else 'N/A',
+            # TODO
+                'init_params': algorithm_run_data.algorithm._literal_init_params if
+                isinstance(algorithm_run_data.algorithm, VectorColoringAlgorithm) else 'N/A'
+            }
+            data_to_save.append(algorithm_data_to_save)
+        json.dump(data_to_save, outfile, ensure_ascii=False, indent=4, sort_keys=True)
 
 
 def load_algorithm_run_data_from_file(run_datetime_str):
@@ -77,6 +86,3 @@ def display_results_on_console(run_datetime_str):
         for results in graph_results[graph_name]:
             print '\talgorithm: {0:50} min colors: {1}'.format(
                 results['algorithm_name'], results['min_nr_of_colors'])
-
-
-display_results_on_console('02-07_18-50-58')

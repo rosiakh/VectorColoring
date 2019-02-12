@@ -14,7 +14,7 @@ params = {
     'c_param_upper_factor': 1,
     'nr_of_c_params_tried_per_random_vector': 5,
     'nr_of_cluster_sizes_to_check': 15,
-    'cluster_size_lower_factor': 0.4,
+    'cluster_size_lower_factor': 0.2,
     'cluster_size_upper_factor': 1.5,
     'nr_of_ind_sets_to_find_in_multiple_sets_strategy': 4,
 }
@@ -109,16 +109,16 @@ def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=
     Tries to return nr_of_sets but might return less.
     """
 
-    def compute_c_opt(g, L):
+    def compute_c_opt(graph, L):
         """Computes optimal c parameter according to KMS.
 
         Args:
-            g (nx.Graph): Graph
+            graph (nx.Graph): Graph
             L (2-dim array): Vector coloring of graph
         """
 
-        max_degree = max(dict(g.degree()).values())
-        k = find_number_of_vector_colors_from_vector_coloring(g, L)
+        max_degree = max(dict(graph.degree()).values())
+        k = find_number_of_vector_colors_from_vector_coloring(graph, L)
         temp = (2 * (k - 2) * math.log(max_degree)) / k
         if temp >= 0:
             c = math.sqrt(temp)
