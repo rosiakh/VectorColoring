@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 from os import listdir
@@ -6,15 +5,8 @@ from os.path import isfile, join
 
 import networkx as nx
 
+import config
 from algorithm import VectorColoringAlgorithm
-
-dirname = '/home/hubert/VectorColoring/'
-if not os.path.exists(dirname):
-    os.makedirs(dirname)
-
-vc_dirname = dirname + 'VectorColorings/'
-if not os.path.exists(vc_dirname):
-    os.makedirs(vc_dirname)
 
 
 class RunResults:
@@ -28,21 +20,15 @@ class RunResults:
         self.repetitions = -1
 
 
-def save_graph_run_data_to_file(graph_results, graph,
-                                folder_name_seed='algorithm_run_' + datetime.datetime.now().strftime(
-                                    "%m-%d_%H-%M-%S") + '/'):
+def save_graph_run_data_to_file(graph_results, graph):
     """Saves results of one algorithm on one graph.
 
     Args:
         graph_results (list of RunResults): algorithm results for graph
     """
 
-    folder_name = vc_dirname + folder_name_seed
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-
-    filename = graph.name + '_' + datetime.datetime.now().strftime("%M-%S") + '.json'
-    with open(folder_name + filename, 'w') as outfile:
+    filename = graph.name + '.json'
+    with open(config.vector_colorings_directory() + filename, 'w') as outfile:
         data_to_save = []
         for algorithm_run_data in graph_results:
             algorithm_data_to_save = {
@@ -55,7 +41,7 @@ def save_graph_run_data_to_file(graph_results, graph,
                 'algorithm_name': algorithm_run_data.algorithm.get_algorithm_name(),
                 'avg_time': algorithm_run_data.average_time,
                 'params': 'params' if isinstance(algorithm_run_data.algorithm, VectorColoringAlgorithm) else 'N/A',
-            # TODO
+                # TODO
                 'init_params': algorithm_run_data.algorithm._literal_init_params if
                 isinstance(algorithm_run_data.algorithm, VectorColoringAlgorithm) else 'N/A'
             }

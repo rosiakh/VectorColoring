@@ -1,5 +1,4 @@
 """Module containing main algorithm logic."""
-
 import itertools
 import logging
 import sys
@@ -242,16 +241,13 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
                         M.constraint('C{0}-{1}'.format(i, j), Expr.add(m.index(i, j), alpha),
                                      Domain.greaterThan(0.))
 
-
             # Objective
             M.objective(ObjectiveSense.Minimize, alpha)
 
             # Set solver parameters
             M.setSolverParam("numThreads", 0)
 
-            folder_name = '/home/hubert/VectorColoring/'
-            filename = 'logs'
-            with open(folder_name + filename, 'w') as outfile:
+            with open(config.logs_directory() + 'logs', 'w') as outfile:
                 if verbose:
                     M.setLogHandler(outfile)
 

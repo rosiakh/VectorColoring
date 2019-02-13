@@ -8,13 +8,7 @@ from networkx import Graph
 from networkx.algorithms import approximation
 from scipy.cluster.hierarchy import dendrogram
 
-dirname = '/home/hubert/VectorColoring/'
-if not os.path.exists(dirname):
-    os.makedirs(dirname)
-
-vc_dirname = dirname + 'VectorColorings/'
-if not os.path.exists(vc_dirname):
-    os.makedirs(vc_dirname)
+import config
 
 
 def find_number_of_vector_colors_from_vector_coloring(graph, L):
@@ -179,8 +173,7 @@ def show_dendrogram(z):
 
 
 def get_vector_coloring_filename(graph, strict):
-    vc_dirname = dirname + 'VectorColorings/'
-    filename = vc_dirname + '_' + graph.name + '_strict=' + str(strict) + '_VectorColoring'
+    filename = config.base_directory + '_' + graph.name + '_strict=' + str(strict) + '_VectorColoring'
 
     return filename
 

@@ -3,6 +3,7 @@
 Usage: python test.py
 """
 
+from datetime import datetime
 from timeit import default_timer as timer
 
 from algorithm import *
@@ -43,7 +44,7 @@ graphs = []
 # graphs.append(nx.random_partition_graph([x for x in range(15, 23)], 0.9, 0.2))
 
 graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
-graphs.append(read_graph_from_file("dimacs", "DSJC125.9", starting_index=1))
+graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
 # graphs.append(read_graph_from_file("dimacs", "DSJC1000.1", starting_index=1))
 
 # graphs.append(create_k_cycle(4, 20))
@@ -146,7 +147,7 @@ algorithms.append(ColoringAlgorithm(
 # Run algorithms to obtain colorings
 repetitions_per_graph = 1
 algorithms_results = {}  # Dictionary - graph: list of RunResults (one result per algorithm)
-folder_name_seed = 'algorithm_run_' + datetime.datetime.now().strftime("%m-%d_%H-%M-%S") + '/'
+config.run_seed = datetime.now().strftime("%m-%d_%H-%M-%S")
 for graph_counter, graph in enumerate(graphs):
     algorithms_results[graph] = []
     for alg_counter, alg in enumerate(algorithms):
@@ -173,8 +174,7 @@ for graph_counter, graph in enumerate(graphs):
         algorithms_results[graph].append(results)
         logging.info("Done graph: {0}, algorithm: {1}, colors: {2}, time: {3:6.2f} s ...\n".format(
             graph.name, alg.get_algorithm_name(), len(set(results.best_coloring.values())), results.average_time))
-    save_graph_run_data_to_file(algorithms_results[graph], graph, folder_name_seed)
-
+    save_graph_run_data_to_file(algorithms_results[graph], graph)
 
 logging.shutdown()
 
