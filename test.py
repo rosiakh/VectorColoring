@@ -58,27 +58,30 @@ algorithms.append(VectorColoringAlgorithm(
     independent_set_extraction_strategy='max_degree_first',
     wigderson_strategy='no_wigderson',
     sdp_type='nonstrict',
-    alg_name='orthonormal hyperplane partition'
+    alg_name='orthonormal hyperplane partition',
+    deterministic=False
 ))
-#
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_all_vertices_at_once',
-#     partition_strategy='clustering',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='clustering all vertices'
-# ))
-#
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_all_vertices_at_once',
-#     partition_strategy='hyperplane_partition',
-#     normal_vectors_generation_strategy='random_normal',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='random hyperplane partition'
-# ))
+
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_all_vertices_at_once',
+    partition_strategy='clustering',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='clustering all vertices',
+    deterministic=True
+))
+
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_all_vertices_at_once',
+    partition_strategy='hyperplane_partition',
+    normal_vectors_generation_strategy='random_normal',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='random hyperplane partition',
+    deterministic=False
+))
 #
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='color_by_independent_sets',
@@ -86,53 +89,59 @@ algorithms.append(VectorColoringAlgorithm(
 #     independent_set_extraction_strategy='arora_kms_prim',
 #     wigderson_strategy='recursive_wigderson',
 #     sdp_type='nonstrict',
-#     alg_name='random vector projection recursive wigderson'
+#     alg_name='random vector projection recursive wigderson',
+#     deterministic=False
 # ))
+
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_by_independent_sets',
+    find_independent_sets_strategy='random_vector_projection',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='random vector projection',
+    deterministic=False
+))
 #
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_by_independent_sets',
-#     find_independent_sets_strategy='random_vector_projection',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='random vector projection'
-# ))
-# #
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_by_independent_sets',
-#     find_independent_sets_strategy='random_vector_projection',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='random vector projection kms\''
-# ))
-#
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_by_independent_sets',
-#     find_independent_sets_strategy='random_vector_projection',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='strong',
-#     alg_name='random vector projection kms\' strong'
-# ))
-#
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_by_independent_sets',
-#     find_independent_sets_strategy='clustering',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='clustering independent sets'
-# ))
-#
-# algorithms.append(VectorColoringAlgorithm(
-#     partial_color_strategy='color_by_independent_sets',
-#     find_independent_sets_strategy='random_vector_projection',
-#     independent_set_extraction_strategy='max_degree_first',
-#     wigderson_strategy='no_wigderson',
-#     sdp_type='nonstrict',
-#     alg_name='random vector projections max degree first'
-# ))
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_by_independent_sets',
+    find_independent_sets_strategy='random_vector_projection',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='random vector projection kms\'',
+    deterministic=False
+))
+
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_by_independent_sets',
+    find_independent_sets_strategy='random_vector_projection',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='strong',
+    alg_name='random vector projection kms\' strong',
+    deterministic=False
+))
+
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_by_independent_sets',
+    find_independent_sets_strategy='clustering',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='clustering independent sets',
+    deterministic=True
+))
+
+algorithms.append(VectorColoringAlgorithm(
+    partial_color_strategy='color_by_independent_sets',
+    find_independent_sets_strategy='random_vector_projection',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='random vector projections max degree first',
+    deterministic=False
+))
 
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))

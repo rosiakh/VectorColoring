@@ -69,8 +69,8 @@ def color_by_independent_sets(graph, L, colors, init_params):
     def get_nr_of_sets_at_once(graph):
         """Determines maximal number of independent sets found for one vector coloring."""
 
-        if nx.classes.density(graph) > 0.75 and graph.number_of_nodes > 75:
-            return 5
+        if nx.classes.density(graph) > 0.89 and graph.number_of_nodes > 100:
+            return 10
 
         return 1
 
@@ -79,7 +79,9 @@ def color_by_independent_sets(graph, L, colors, init_params):
     # TODO: strategy of determining how many sets to get at once from find_ind_set_strategy
 
     best_ind_sets = None
-    for it in range(config.color_by_independent_sets_params['nr_of_times_restarting_ind_set_strategy']):
+    nr_of_trials = 1 if init_params['deterministic'] else config.color_all_vertices_at_once_params[
+        'nr_of_partitions_to_try']
+    for it in range(nr_of_trials):
         ind_sets = init_params['find_independent_sets_strategy'](
             graph, L, init_params, nr_of_sets=get_nr_of_sets_at_once(graph))  # Returns list of sets
 

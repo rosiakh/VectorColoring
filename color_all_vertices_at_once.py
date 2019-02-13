@@ -77,7 +77,9 @@ def color_all_vertices_at_once(graph, L, colors, init_params):
     logging.info('Looking for partial coloring using all_vertices_at_once strategy...')
 
     best_partition = None
-    for it in range(config.color_all_vertices_at_once_params['nr_of_partitions_to_try']):
+    nr_of_trials = 1 if init_params['deterministic'] else config.color_all_vertices_at_once_params[
+        'nr_of_partitions_to_try']
+    for it in range(nr_of_trials):
         partition = init_params['partition_strategy'](graph, L, init_params)
 
         if better_partition(graph, partition, best_partition, init_params['independent_set_extraction_strategy']):

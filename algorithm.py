@@ -67,7 +67,8 @@ class VectorColoringAlgorithm:
                  find_independent_sets_strategy=None,
                  independent_set_extraction_strategy='max_degree_first',
                  sdp_type='nonstrict',
-                 alg_name=None):
+                 alg_name=None,
+                 deterministic=False):
         """Describe here the interfaces for all those strategies"""
 
         # TODO: Check for wrong strategy parameters
@@ -81,6 +82,7 @@ class VectorColoringAlgorithm:
             'partition_strategy': partition_strategy_map[partition_strategy],
             'normal_vectors_generation_strategy': normal_vectors_generation_strategy,
             'find_independent_sets_strategy': find_independent_sets_strategy_map[find_independent_sets_strategy],
+            'deterministic': deterministic,
         }
 
         # All values are strings; needed for recursive VectorColoringAlgorithm creation
@@ -89,6 +91,7 @@ class VectorColoringAlgorithm:
         self._literal_init_params['wigderson_strategy'] = wigderson_strategy
         self._literal_init_params['partition_strategy'] = partition_strategy
         self._literal_init_params['find_independent_sets_strategy'] = find_independent_sets_strategy
+        self._literal_init_params['deterministic'] = deterministic
 
         self._partially_color_strategy = lambda graph, L, colors: \
             init_params['partial_color_strategy'](graph, L, colors, init_params)
