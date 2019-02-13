@@ -6,19 +6,6 @@ from scipy.cluster.hierarchy import linkage, fcluster
 
 from algorithm_helper import *
 
-params = {
-    'nr_of_times_restarting_ind_set_strategy': 5,
-    'nr_of_random_vectors_tried': 15,
-    'max_nr_of_random_vectors_without_change': 100,
-    'c_param_lower_factor': 0.2,
-    'c_param_upper_factor': 1,
-    'nr_of_c_params_tried_per_random_vector': 5,
-    'nr_of_cluster_sizes_to_check': 15,
-    'cluster_size_lower_factor': 0.2,
-    'cluster_size_upper_factor': 1.5,
-    'nr_of_ind_sets_to_find_in_multiple_sets_strategy': 4,
-}
-
 
 def better_ind_sets(graph, ind_sets1, ind_sets2):
     """Returns true if the first list of independent sets is better than the second."""
@@ -92,7 +79,7 @@ def color_by_independent_sets(graph, L, colors, init_params):
     # TODO: strategy of determining how many sets to get at once from find_ind_set_strategy
 
     best_ind_sets = None
-    for it in range(params['nr_of_times_restarting_ind_set_strategy']):
+    for it in range(config.color_by_independent_sets_params['nr_of_times_restarting_ind_set_strategy']):
         ind_sets = init_params['find_independent_sets_strategy'](
             graph, L, init_params, nr_of_sets=get_nr_of_sets_at_once(graph))  # Returns list of sets
 
@@ -135,8 +122,8 @@ def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=
     best_ind_sets = []
     it = 0
     last_change = 0
-    while it < params['nr_of_random_vectors_tried'] \
-            and it - last_change < params['max_nr_of_random_vectors_without_change']:
+    while it < config.color_by_independent_sets_params['nr_of_random_vectors_tried'] \
+            and it - last_change < config.color_by_independent_sets_params['max_nr_of_random_vectors_without_change']:
         it += 1
 
         ind_sets = []
@@ -145,9 +132,9 @@ def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=
             x = np.dot(L, r)
             best_ind_set = []
             for c in np.linspace(
-                    c_opt * params['c_param_lower_factor'],
-                    c_opt * params['c_param_upper_factor'],
-                    num=params['nr_of_c_params_tried_per_random_vector']):
+                    c_opt * config.color_by_independent_sets_params['c_param_lower_factor'],
+                    c_opt * config.color_by_independent_sets_params['c_param_upper_factor'],
+                    num=config.color_by_independent_sets_params['nr_of_c_params_tried_per_random_vector']):
                 current_subgraph_nodes = {inv_vertices_mapping[i] for i, v in enumerate(x) if v >= c}
                 current_subgraph_edges = {(i, j) for i, j in graph.edges() if
                                           (i in current_subgraph_nodes and j in current_subgraph_nodes)}
@@ -179,9 +166,9 @@ def find_ind_sets_by_clustering(graph, L, init_params, nr_of_sets=1):
 
     best_ind_sets = None
     for t in np.linspace(
-            opt_t * params['cluster_size_lower_factor'],
-            opt_t * params['cluster_size_upper_factor'],
-            num=params['nr_of_cluster_sizes_to_check']):
+            opt_t * config.color_by_independent_sets_params['cluster_size_lower_factor'],
+            opt_t * config.color_by_independent_sets_params['cluster_size_upper_factor'],
+            num=config.color_by_independent_sets_params['nr_of_cluster_sizes_to_check']):
         clusters = fcluster(z, t, criterion='distance')
         partition = {n: clusters[v] for v, n in enumerate(sorted(list(graph.nodes())))}
 

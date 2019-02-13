@@ -10,13 +10,6 @@ from algorithm_helper import *
 
 np.set_printoptions(precision=5, suppress=True)
 
-params = {
-    'nr_of_partitions_to_try': 3,
-    'nr_of_cluster_sizes_to_check': 15,
-    'cluster_size_lower_factor': 0.4,
-    'cluster_size_upper_factor': 1.5,
-}
-
 
 def better_partition(graph, part1, part2, independent_set_extraction_strategy):
     """Checks whether the first partition is better than the second one."""
@@ -84,7 +77,7 @@ def color_all_vertices_at_once(graph, L, colors, init_params):
     logging.info('Looking for partial coloring using all_vertices_at_once strategy...')
 
     best_partition = None
-    for it in range(params['nr_of_partitions_to_try']):
+    for it in range(config.color_all_vertices_at_once_params['nr_of_partitions_to_try']):
         partition = init_params['partition_strategy'](graph, L, init_params)
 
         if better_partition(graph, partition, best_partition, init_params['independent_set_extraction_strategy']):
@@ -163,9 +156,9 @@ def clustering_partition_strategy(graph, L, init_params):
 
     best_partition = None
     for t in np.linspace(
-            opt_t * params['cluster_size_lower_factor'],
-            opt_t * params['cluster_size_upper_factor'],
-            params['nr_of_cluster_sizes_to_check']):
+            opt_t * config.color_all_vertices_at_once_params['cluster_size_lower_factor'],
+            opt_t * config.color_all_vertices_at_once_params['cluster_size_upper_factor'],
+            config.color_all_vertices_at_once_params['nr_of_cluster_sizes_to_check']):
         clusters = fcluster(z, t, criterion='distance')
         partition = {n: clusters[v] for v, n in enumerate(sorted(list(graph.nodes())))}
         if better_partition(graph, partition, best_partition, init_params['independent_set_extraction_strategy']):

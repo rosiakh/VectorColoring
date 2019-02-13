@@ -45,6 +45,12 @@ def save_graph_run_data_to_file(graph_results, graph):
                 'init_params': algorithm_run_data.algorithm._literal_init_params if
                 isinstance(algorithm_run_data.algorithm, VectorColoringAlgorithm) else 'N/A'
             }
+            if algorithm_data_to_save['params'] == 'params':
+                if algorithm_run_data.algorithm._literal_init_params[
+                    'partial_color_strategy'] == 'color_by_independent_sets':
+                    algorithm_data_to_save['params'] = config.color_by_independent_sets_params
+                else:
+                    algorithm_data_to_save['params'] = config.color_all_vertices_at_once_params
             data_to_save.append(algorithm_data_to_save)
         json.dump(data_to_save, outfile, ensure_ascii=False, indent=4, sort_keys=True)
 
