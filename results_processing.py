@@ -55,8 +55,8 @@ def save_graph_run_data_to_file(graph_results, graph):
         json.dump(data_to_save, outfile, ensure_ascii=False, indent=4, sort_keys=True)
 
 
-def load_algorithm_run_data_from_file(run_datetime_str):
-    folder_name = vc_dirname + 'algorithm_run_' + run_datetime_str + '/'
+def load_algorithm_run_data_from_file(run_seed):
+    folder_name = config.vector_colorings_directory(run_seed)
     onlyfiles = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
 
     graph_results = {}
@@ -64,17 +64,16 @@ def load_algorithm_run_data_from_file(run_datetime_str):
         with open(folder_name + filename) as infile:
             graph_algorithms_results = json.load(infile)  # each file a list of data for each algorithm (not RunResults)
             graph_results[os.path.splitext(filename)[0]] = graph_algorithms_results
-            a = 2
 
     # graph_results should be used as a basis for display
     return graph_results
 
 
-def display_results_on_console(run_datetime_str):
-    graph_results = load_algorithm_run_data_from_file(run_datetime_str)
+def display_results_on_console(run_seed=None):
+    graph_results = load_algorithm_run_data_from_file(run_seed)
 
     for graph_name in graph_results:  # graph_results - a list of dictionaries (one dict per algorithm)
         print 'Graph: {0}'.format(graph_name)
         for results in graph_results[graph_name]:
-            print '\talgorithm: {0:50} min colors: {1}'.format(
+            print '\talgorithm: {0:40}, colors used: {1}'.format(
                 results['algorithm_name'], results['min_nr_of_colors'])

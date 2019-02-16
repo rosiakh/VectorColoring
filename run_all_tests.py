@@ -5,6 +5,9 @@ from algorithm import *
 from graph_io import *
 from results_processing import *
 
+# Logging configuration
+logging.basicConfig(format='%(message)s', level=logging.INFO, datefmt='%I:%M:%S')
+
 # Test graph creation
 graphs = []
 
@@ -16,88 +19,88 @@ graphs = []
 
 # graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
 
-graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC125.5", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC125.9", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC250.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC250.5", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC250.9", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC500.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC500.5", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJC500.9", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC125.5", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC125.9", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC250.1", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC250.5", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC250.9", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC500.1", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "DSJC500.5", starting_index=1))  vertices >
+# graphs.append(read_graph_from_file("dimacs", "DSJC500.9", starting_index=1))  vertices >
 
-graphs.append(read_graph_from_file("dimacs", "DSJR500.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJR500.1c", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "DSJR500.5", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "DSJR500.1", starting_index=1))  vertices >
+# graphs.append(read_graph_from_file("dimacs", "DSJR500.1c", starting_index=1))  vertices >
+# graphs.append(read_graph_from_file("dimacs", "DSJR500.5", starting_index=1))  vertices >
 
-graphs.append(read_graph_from_file("dimacs", "flat300_20_0", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "flat300_26_0", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "flat300_28_0", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "flat300_20_0", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "flat300_26_0", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "flat300_28_0", starting_index=1))  done
+#
+# graphs.append(read_graph_from_file("dimacs", "fpsol2.i.1", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "fpsol2.i.2", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "fpsol2.i.3", starting_index=1))  done
 
-graphs.append(read_graph_from_file("dimacs", "fpsol2.i.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "fpsol2.i.2", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "fpsol2.i.3", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "inithx.i.1", starting_index=1))  vertices >
+# graphs.append(read_graph_from_file("dimacs", "inithx.i.2", starting_index=1))  vertices >
+# graphs.append(read_graph_from_file("dimacs", "inithx.i.3", starting_index=1))  vertices >
 
-graphs.append(read_graph_from_file("dimacs", "inithx.i.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "inithx.i.2", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "inithx.i.3", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "mulsol.i.1", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "mulsol.i.2", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "mulsol.i.3", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "mulsol.i.4", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "mulsol.i.5", starting_index=1))  do later
 
-graphs.append(read_graph_from_file("dimacs", "mulsol.i.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "mulsol.i.2", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "mulsol.i.3", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "mulsol.i.4", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "mulsol.i.5", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "zeroin.i.1", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "zeroin.i.2", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "zeroin.i.3", starting_index=1))  done
+#
+# graphs.append(read_graph_from_file("dimacs", "games120", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "homer", starting_index=1))  vertices >
+# graphs.append(read_graph_from_file("dimacs", "huck", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "jean", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "anna", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "david", starting_index=1)) done
+#
+# graphs.append(read_graph_from_file("dimacs", "le450_5a", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "le450_5b", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "le450_5c", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "le450_5d", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "le450_15a", starting_index=1)) done
+# graphs.append(read_graph_from_file("dimacs", "le450_15b", starting_index=1)) do later
+# graphs.append(read_graph_from_file("dimacs", "le450_15c", starting_index=1)) do later
+# graphs.append(read_graph_from_file("dimacs", "le450_15d", starting_index=1)) do later
+# graphs.append(read_graph_from_file("dimacs", "le450_25a", starting_index=1)) do later
+# graphs.append(read_graph_from_file("dimacs", "le450_25b", starting_index=1)) do later
+# graphs.append(read_graph_from_file("dimacs", "le450_25c", starting_index=1)) do later
+# graphs.append(read_graph_from_file("dimacs", "le450_25d", starting_index=1)) do later
 
-graphs.append(read_graph_from_file("dimacs", "zeroin.i.1", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "zeroin.i.2", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "zeroin.i.3", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "miles250", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "miles500", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "miles750", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "miles1000", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "miles1500", starting_index=1))  done
 
-graphs.append(read_graph_from_file("dimacs", "games120", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "homer", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "huck", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "jean", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "anna", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "david", starting_index=1))
-
-graphs.append(read_graph_from_file("dimacs", "le450_5a", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_5b", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_5c", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_5d", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_15a", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_15b", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_15c", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_15d", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_25a", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_25b", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_25c", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "le450_25d", starting_index=1))
-
-graphs.append(read_graph_from_file("dimacs", "miles250", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "miles500", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "miles750", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "miles1000", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "miles1500", starting_index=1))
-
-graphs.append(read_graph_from_file("dimacs", "myciel2", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "myciel3", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "myciel4", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "myciel5", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "myciel6", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "myciel7", starting_index=1))
-
-graphs.append(read_graph_from_file("dimacs", "queen5_5", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen6_6", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen7_7", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen8_8", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen8_12", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen9_9", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen10_10", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen11_11", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen12_12", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen13_13", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen14_14", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen15_15", starting_index=1))
-graphs.append(read_graph_from_file("dimacs", "queen16_16", starting_index=1))
+# graphs.append(read_graph_from_file("dimacs", "myciel2", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "myciel3", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "myciel4", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "myciel5", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "myciel6", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "myciel7", starting_index=1))  done
+#
+# graphs.append(read_graph_from_file("dimacs", "queen5_5", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "queen6_6", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "queen7_7", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "queen8_8", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen8_12", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "queen9_9", starting_index=1))  done
+# graphs.append(read_graph_from_file("dimacs", "queen10_10", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen11_11", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen12_12", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen13_13", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen14_14", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen15_15", starting_index=1))  do later
+# graphs.append(read_graph_from_file("dimacs", "queen16_16", starting_index=1))  do later
 
 graphs.append(read_graph_from_file("dimacs", "r125.1", starting_index=1))
 graphs.append(read_graph_from_file("dimacs", "r125.1c", starting_index=1))
@@ -163,15 +166,6 @@ algorithms.append(VectorColoringAlgorithm(
     deterministic=True
 ))
 
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projections max degree first',
-    deterministic=False
-))
 
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))
