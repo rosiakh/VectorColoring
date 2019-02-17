@@ -33,7 +33,7 @@ def save_graph_run_data_to_file(graph_results, graph):
         for algorithm_run_data in graph_results:
             algorithm_data_to_save = {
                 'graph_name': graph.name,
-                'graph_family': graph.name,  # TODO
+                'graph_family': graph.family,
                 'graph_nr_of_vertices': graph.number_of_nodes(),
                 'graph_density': nx.classes.density(graph),
                 'avg_nr_of_colors': algorithm_run_data.average_nr_of_colors,

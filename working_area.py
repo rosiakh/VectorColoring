@@ -89,6 +89,31 @@ tested_graphs.append(read_graph_from_file("dimacs", "school1", starting_index=1)
 tested_graphs.append(read_graph_from_file("dimacs", "school1_nsh", starting_index=1))
 
 with open("/home/hubert/graph_table", 'w') as outfile:
+
     results = load_algorithm_run_data_from_file('AggregatedResults')
-    for graph in tested_graphs:
-        outfile.write("{0} & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\\\\n".format(graph.name))
+    for graph_name in sorted(results.keys(), key=lambda k: (
+    results[k][0]['graph_family'], int(results[k][0]['graph_nr_of_vertices']), float(results[k][0]['graph_density']))):
+        orthonormal_hyperplane_partition = \
+        filter(lambda x: x['algorithm_name'] == 'orthonormal hyperplane partition', results[graph_name])[0]
+        clustering_all_vertices = \
+        filter(lambda x: x['algorithm_name'] == 'clustering all vertices', results[graph_name])[0]
+        random_hyperplane_partition = \
+        filter(lambda x: x['algorithm_name'] == 'random hyperplane partition', results[graph_name])[0]
+        random_vector_projection = \
+        filter(lambda x: x['algorithm_name'] == 'random vector projection', results[graph_name])[0]
+        clustering_independent_sets = \
+        filter(lambda x: x['algorithm_name'] == 'clustering independent sets', results[graph_name])[0]
+        greedy_independent_set = filter(lambda x: x['algorithm_name'] == 'greedy_independent_set', results[graph_name])[
+            0]
+        dsatur = filter(lambda x: x['algorithm_name'] == 'dsatur', results[graph_name])[0]
+
+        outfile.write("{0} & {1} & {2} & {3} & {4} & {5} & {6} & {7} \\\\\n".format(
+            graph_name,
+            orthonormal_hyperplane_partition['min_nr_of_colors'],
+            clustering_all_vertices['min_nr_of_colors'],
+            random_hyperplane_partition['min_nr_of_colors'],
+            random_vector_projection['min_nr_of_colors'],
+            clustering_independent_sets['min_nr_of_colors'],
+            greedy_independent_set['min_nr_of_colors'],
+            dsatur['min_nr_of_colors'],
+        ))

@@ -1,6 +1,5 @@
 import logging
 import math
-import sys
 
 import networkx as nx
 import networkx.algorithms.approximation
@@ -81,15 +80,15 @@ def color_all_vertices_at_once(graph, L, colors, init_params):
     nr_of_trials = 1 if init_params['deterministic'] else config.color_all_vertices_at_once_params[
         'nr_of_partitions_to_try']
     for it in range(nr_of_trials):
-        sys.stdout.write("\r{0}/{1}".format(it + 1, nr_of_trials))
-        sys.stdout.flush()
+        # sys.stdout.write("\r{0}/{1}".format(it + 1, nr_of_trials))
+        # sys.stdout.flush()
         partition = init_params['partition_strategy'](graph, L, init_params)
 
         if better_partition(graph, partition, best_partition, init_params['independent_set_extraction_strategy']):
             best_partition = partition
 
-    sys.stdout.write("\r")
-    sys.stdout.flush()
+    # sys.stdout.write("\r")
+    # sys.stdout.flush()
     update_colors_and_graph(graph, colors, best_partition)
 
     logging.info('Partial coloring found. There are {0} vertices left to color'.format(graph.number_of_nodes()))
