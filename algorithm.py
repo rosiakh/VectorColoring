@@ -226,22 +226,22 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
 
             # Variables
             n = graph.number_of_nodes()
-            alpha = M.variable("alpha", Domain.lessThan(0.))
+            alpha = M.variable(Domain.lessThan(0.))
             m = M.variable(Domain.inPSDCone(n))
 
             # Constraints
-            M.constraint("C1", m.diag(), Domain.equalsTo(1.0))
+            M.constraint(m.diag(), Domain.equalsTo(1.0))
             for i in range(n):
                 for j in range(n):
-                    if i > j and has_edge_between_ith_and_jth(graph, i, j):
+                    if has_edge_between_ith_and_jth(graph, i, j):
                         if sdp_type == 'strict' or sdp_type == 'strong':
-                            M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
+                            M.constraint(Expr.sub(m.index(i, j), alpha),
                                          Domain.equalsTo(0.))
                         elif sdp_type == 'nonstrict':
-                            M.constraint('C{0}-{1}'.format(i, j), Expr.sub(m.index(i, j), alpha),
+                            M.constraint(Expr.sub(m.index(i, j), alpha),
                                          Domain.lessThan(0.))
-                    elif i > j and sdp_type == 'strong':
-                        M.constraint('C{0}-{1}'.format(i, j), Expr.add(m.index(i, j), alpha),
+                    elif sdp_type == 'strong':
+                        M.constraint(Expr.add(m.index(i, j), alpha),
                                      Domain.greaterThan(0.))
 
             # Objective
@@ -250,11 +250,11 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
             # Set solver parameters
             M.setSolverParam("numThreads", 0)
 
-            with open(config.logs_directory() + 'logs', 'w') as outfile:
-                if verbose:
-                    M.setLogHandler(outfile)
+            # with open(config.logs_directory() + 'logs', 'w') as outfile:
+            #     if verbose:
+            #         M.setLogHandler(outfile)
 
-                M.solve()
+            M.solve()
 
             alpha_opt = alpha.level()[0]
             level = m.level()

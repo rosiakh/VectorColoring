@@ -55,7 +55,7 @@ def save_graph_run_data_to_file(graph_results, graph):
         json.dump(data_to_save, outfile, ensure_ascii=False, indent=4, sort_keys=True)
 
 
-def load_algorithm_run_data_from_file(run_seed):
+def load_algorithm_run_data_from_file(run_seed=None):
     folder_name = config.vector_colorings_directory(run_seed)
     onlyfiles = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
 

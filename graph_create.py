@@ -61,6 +61,7 @@ def create_k_colorable_graph(k, n, p, cluster_by_modulo=False):
 
     graph.name = 'graph with {0}v in {1} clusters and {2} edge prob'.format(n, k, p)
     graph.family = 'k-colorable'
+    graph.starting_index = 0
 
     return graph
 
@@ -86,6 +87,7 @@ def create_k_cycle(k, n):
 
     graph.name = '{0}-cycle graph {1}v'.format(k, n)
     graph.family = 'k-cycle'
+    graph.starting_index = 0
 
     return graph
 
@@ -112,6 +114,7 @@ def create_erdos_renyi_graph(n, p):
     graph = nx.erdos_renyi_graph(n, p)
     graph.name = 'erdos_renyi_graph_{0}n_{1}p'.format(n, p)
     graph.family = 'erdos_renyi'
+    graph.starting_index = 0
 
     return graph
 
@@ -128,6 +131,7 @@ def create_watts_strogatz_graph(n, k, p):
     graph = nx.connected_watts_strogatz_graph(n, k, p)
     graph.name = 'watts_strogatz_graph_{0}n_{1}k_{2}p'.format(n, k, p)
     graph.family = 'watts_strogatz'
+    graph.starting_index = 0
 
     return graph
 
@@ -142,6 +146,7 @@ def create_barabasi_albert_graph(n, m):
     graph = nx.dense_gnm_random_graph(n, m)
     graph.name = 'barabasi_albert_graph_{0}n_{1}m'.format(n, m)
     graph.family = 'barabasi_albert'
+    graph.starting_index = 0
 
     return graph
 

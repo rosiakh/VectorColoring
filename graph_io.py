@@ -39,6 +39,7 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
     # G = nx.relabel_nodes(G, lambda x: x - 1, copy=False)
     graph.name = graph_name
     graph.family = graph.name
+    graph.starting_index = starting_index
 
     return graph
 
