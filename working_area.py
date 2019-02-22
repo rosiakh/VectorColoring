@@ -107,13 +107,15 @@ with open("/home/hubert/graph_table", 'w') as outfile:
             0]
         dsatur = filter(lambda x: x['algorithm_name'] == 'dsatur', results[graph_name])[0]
 
-        outfile.write("{0} & {1} & {2} & {3} & {4} & {5} & {6} & {7} \\\\\n".format(
-            graph_name,
+        outfile.write("{0} & {1} & {2:.2} & {3} & {4} & {5} & {6} & {7} & {8} & {9} \\\\\n".format(
+            results[graph_name][0]['graph_family'],
+            results[graph_name][0]['graph_nr_of_vertices'],
+            results[graph_name][0]['graph_density'],
+            random_hyperplane_partition['min_nr_of_colors'],
             orthonormal_hyperplane_partition['min_nr_of_colors'],
             clustering_all_vertices['min_nr_of_colors'],
-            random_hyperplane_partition['min_nr_of_colors'],
             random_vector_projection['min_nr_of_colors'],
             clustering_independent_sets['min_nr_of_colors'],
             greedy_independent_set['min_nr_of_colors'],
-            dsatur['min_nr_of_colors'],
+            dsatur['min_nr_of_colors']
         ))

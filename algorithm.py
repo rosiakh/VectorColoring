@@ -233,7 +233,7 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
             M.constraint(m.diag(), Domain.equalsTo(1.0))
             for i in range(n):
                 for j in range(n):
-                    if has_edge_between_ith_and_jth(graph, i, j):
+                    if i > j and has_edge_between_ith_and_jth(graph, i, j):
                         if sdp_type == 'strict' or sdp_type == 'strong':
                             M.constraint(Expr.sub(m.index(i, j), alpha),
                                          Domain.equalsTo(0.))

@@ -8,7 +8,7 @@ import numpy as np
 import pylab
 
 
-def read_graph_from_file(folder_name, graph_name, starting_index=0):
+def read_graph_from_file(folder_name, graph_name, graph_type=None, starting_index=0):
     """Creates graph from DIMACS-format file.
 
     Args:
@@ -40,6 +40,7 @@ def read_graph_from_file(folder_name, graph_name, starting_index=0):
     graph.name = graph_name
     graph.family = graph.name
     graph.starting_index = starting_index
+    graph.type = graph_type
 
     return graph
 

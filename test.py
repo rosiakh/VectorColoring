@@ -7,6 +7,7 @@ from datetime import datetime
 from timeit import default_timer as timer
 
 from algorithm import *
+from graph_create import *
 from graph_io import *
 from results_processing import *
 
@@ -17,7 +18,7 @@ logging.basicConfig(format='%(message)s', level=logging.INFO, datefmt='%I:%M:%S'
 graphs = []
 
 # graphs.append(nx.powerlaw_cluster_graph(180, 37, 0.3)) # duza przewaga dsatur
-# graphs.append(create_erdos_renyi_graph(n=10, p=0.5))  # nie widac roznicy
+graphs.append(create_erdos_renyi_graph(n=120, p=0.5))  # nie widac roznicy
 # graphs.append(create_barabasi_albert_graph(n=20, m=20))
 # graphs.append(create_watts_strogatz_graph(30, 6, 0.6))
 # graphs.append(nx.ring_of_cliques(10, 7))

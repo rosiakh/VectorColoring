@@ -1,6 +1,5 @@
 import logging
 import math
-import sys
 
 import networkx as nx
 from scipy.cluster.hierarchy import linkage, fcluster
@@ -83,16 +82,16 @@ def color_by_independent_sets(graph, L, colors, init_params):
     nr_of_trials = 1 if init_params['deterministic'] else config.color_all_vertices_at_once_params[
         'nr_of_partitions_to_try']
     for it in range(nr_of_trials):
-        sys.stdout.write("\r{0}/{1}".format(it, nr_of_trials))
-        sys.stdout.flush()
+        # sys.stdout.write("\r{0}/{1}".format(it, nr_of_trials))
+        # sys.stdout.flush()
         ind_sets = init_params['find_independent_sets_strategy'](
             graph, L, init_params, nr_of_sets=get_nr_of_sets_at_once(graph))  # Returns list of sets
 
         if better_ind_sets(graph, ind_sets, best_ind_sets):
             best_ind_sets = ind_sets
 
-    sys.stdout.write("\r")
-    sys.stdout.flush()
+    # sys.stdout.write("\r")
+    # sys.stdout.flush()
     update_colors_and_graph(graph, colors, best_ind_sets)
     logging.debug('Found independent sets (maybe identical) of sizes: ' + str([len(s) for s in best_ind_sets]))
 
