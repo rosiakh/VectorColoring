@@ -8,7 +8,7 @@ import numpy as np
 import pylab
 
 
-def read_graph_from_file(folder_name, graph_name, graph_type=None, starting_index=0):
+def read_graph_from_file(folder_name, graph_name, graph_type=None, starting_index=0, fullpath=None):
     """Creates graph from DIMACS-format file.
 
     Args:
@@ -21,7 +21,11 @@ def read_graph_from_file(folder_name, graph_name, graph_type=None, starting_inde
 
     graph = nx.Graph()
 
-    filename = 'graph_instances/' + folder_name + '/' + graph_name + '.col'
+    if fullpath is not None:
+        filename = fullpath
+    else:
+        filename = 'graph_instances/' + folder_name + '/' + graph_name + '.col'
+
     with open(filename) as f:
         for line in f:
             l = line.split()

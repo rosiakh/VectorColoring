@@ -38,6 +38,7 @@ def save_graph_run_data_to_file(graph_results, graph):
                 'graph_density': nx.classes.density(graph),
                 'avg_nr_of_colors': algorithm_run_data.average_nr_of_colors,
                 'min_nr_of_colors': len(set(algorithm_run_data.best_coloring.values())),
+                'best_coloring': algorithm_run_data.best_coloring,
                 'algorithm_name': algorithm_run_data.algorithm.get_algorithm_name(),
                 'avg_time': algorithm_run_data.average_time,
                 'params': 'params' if isinstance(algorithm_run_data.algorithm, VectorColoringAlgorithm) else 'N/A',
