@@ -7,7 +7,6 @@ from datetime import datetime
 from timeit import default_timer as timer
 
 from algorithm import *
-from graph_create import *
 from graph_io import *
 from results_processing import *
 
@@ -18,7 +17,7 @@ logging.basicConfig(format='%(message)s', level=logging.INFO, datefmt='%I:%M:%S'
 graphs = []
 
 # graphs.append(nx.powerlaw_cluster_graph(180, 37, 0.3)) # duza przewaga dsatur
-graphs.append(create_erdos_renyi_graph(n=120, p=0.5))  # nie widac roznicy
+# graphs.append(create_erdos_renyi_graph(n=120, p=0.5))  # nie widac roznicy
 # graphs.append(create_barabasi_albert_graph(n=20, m=20))
 # graphs.append(create_watts_strogatz_graph(30, 6, 0.6))
 # graphs.append(nx.ring_of_cliques(10, 7))
@@ -44,24 +43,14 @@ graphs.append(create_erdos_renyi_graph(n=120, p=0.5))  # nie widac roznicy
 # graphs.append(nx.mycielski_graph(8))
 # graphs.append(nx.random_partition_graph([x for x in range(15, 23)], 0.9, 0.2))
 
-graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
-graphs.append(read_graph_from_file("dimacs", "DSJC125.1", starting_index=1))
+# graphs.append(read_graph_from_file('other', 'grotzsch', starting_index=0))
+graphs.append(read_graph_from_file("dimacs", "DSJC125.5", starting_index=1))
 # graphs.append(read_graph_from_file("dimacs", "DSJC1000.1", starting_index=1))
 
 # graphs.append(create_k_cycle(4, 20))
 
 algorithms = []
 
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='hyperplane_partition',
-    normal_vectors_generation_strategy='orthonormal',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='orthonormal hyperplane partition',
-    deterministic=False
-))
 
 algorithms.append(VectorColoringAlgorithm(
     partial_color_strategy='color_all_vertices_at_once',
@@ -73,76 +62,47 @@ algorithms.append(VectorColoringAlgorithm(
     deterministic=True
 ))
 
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='hyperplane_partition',
-    normal_vectors_generation_strategy='random_normal',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random hyperplane partition',
-    deterministic=False
-))
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_all_vertices_at_once',
+#     partition_strategy='hyperplane_partition',
+#     normal_vectors_generation_strategy='orthonormal',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='orthonormal hyperplane partition',
+#     deterministic=False
+# ))
+
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_all_vertices_at_once',
+#     partition_strategy='hyperplane_partition',
+#     normal_vectors_generation_strategy='random_normal',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='random hyperplane partition',
+#     deterministic=False
+# ))
 #
 # algorithms.append(VectorColoringAlgorithm(
 #     partial_color_strategy='color_by_independent_sets',
 #     find_independent_sets_strategy='random_vector_projection',
-#     independent_set_extraction_strategy='arora_kms_prim',
-#     wigderson_strategy='recursive_wigderson',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
 #     sdp_type='nonstrict',
-#     alg_name='random vector projection recursive wigderson',
+#     alg_name='random vector projection',
 #     deterministic=False
 # ))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projection',
-    deterministic=False
-))
 #
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projection kms\'',
-    deterministic=False
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='strong',
-    alg_name='random vector projection kms\' strong',
-    deterministic=False
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='clustering',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='clustering independent sets',
-    deterministic=True
-))
-
-algorithms.append(VectorColoringAlgorithm(
-    partial_color_strategy='color_by_independent_sets',
-    find_independent_sets_strategy='random_vector_projection',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='random vector projections max degree first',
-    deterministic=False
-))
+# algorithms.append(VectorColoringAlgorithm(
+#     partial_color_strategy='color_by_independent_sets',
+#     find_independent_sets_strategy='clustering',
+#     independent_set_extraction_strategy='max_degree_first',
+#     wigderson_strategy='no_wigderson',
+#     sdp_type='nonstrict',
+#     alg_name='clustering independent sets',
+#     deterministic=True
+# ))
 
 algorithms.append(ColoringAlgorithm(
     lambda g: nx.algorithms.coloring.greedy_color(g, strategy='independent_set'), 'greedy_independent_set'))

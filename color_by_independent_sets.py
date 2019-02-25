@@ -69,7 +69,7 @@ def color_by_independent_sets(graph, L, colors, init_params):
     def get_nr_of_sets_at_once(graph):
         """Determines maximal number of independent sets found for one vector coloring."""
 
-        if nx.classes.density(graph) > 0.89 and graph.number_of_nodes() > 100:
+        if nx.classes.density(graph) > 0.7 and graph.number_of_nodes() > 100:
             return 10
 
         return 1
@@ -168,7 +168,6 @@ def find_ind_sets_by_clustering(graph, L, init_params, nr_of_sets=1):
 
     k = find_number_of_vector_colors_from_vector_coloring(graph, L)
     opt_t = 1 + 1 / (k - 1) - 0.001 if k > 1.5 else 2.0  # Should guarantee each cluster can be colored with one color
-    # t *= 1.1  # Make clusters a bit bigger
 
     best_ind_sets = None
     for t in np.linspace(

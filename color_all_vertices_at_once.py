@@ -116,7 +116,7 @@ def hyperplanes_partition_strategy(graph, L, init_params):
         k = find_number_of_vector_colors_from_vector_coloring(graph, L)
         opt_nr_of_hyperplanes = 2 + int(math.ceil(math.log(max_degree, k)))
 
-        return max(1, opt_nr_of_hyperplanes - 2)
+        return max(1, opt_nr_of_hyperplanes - 1)
 
     def get_random_vectors(nr_of_vectors, strategy):
         """Returns matrix which rows are random vectors generated according to strategy."""
@@ -158,7 +158,6 @@ def clustering_partition_strategy(graph, L, init_params):
 
     k = find_number_of_vector_colors_from_vector_coloring(graph, L)
     opt_t = 1 + 1 / (k - 1) - 0.001 if k > 1.5 else 2.0  # Should guarantee each cluster can be colored with one color
-    # t *= 1.1  # Make clusters a bit bigger
 
     best_partition = None
     for t in np.linspace(

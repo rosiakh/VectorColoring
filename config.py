@@ -39,19 +39,19 @@ def current_run_directory(seed=None):
 
 color_by_independent_sets_params = {
     'nr_of_times_restarting_ind_set_strategy': 1,
-    'nr_of_random_vectors_tried': 45,
-    'max_nr_of_random_vectors_without_change': 30,
-    'c_param_lower_factor': 0.2,
+    'nr_of_random_vectors_tried': 30,
+    'max_nr_of_random_vectors_without_change': 15,
+    'c_param_lower_factor': 0.5,
     'c_param_upper_factor': 1.2,
     'nr_of_c_params_tried_per_random_vector': 8,
-    'nr_of_cluster_sizes_to_check': 15,
-    'cluster_size_lower_factor': 0.3,
-    'cluster_size_upper_factor': 2.0,
+    'nr_of_cluster_sizes_to_check': 8,
+    'cluster_size_lower_factor': 0.9,  # Makes no sense to set it much lower than 1.0
+    'cluster_size_upper_factor': 1.1,
 }
 
 color_all_vertices_at_once_params = {
-    'nr_of_partitions_to_try': 15,
-    'nr_of_cluster_sizes_to_check': 15,
-    'cluster_size_lower_factor': 0.3,
-    'cluster_size_upper_factor': 2.0,
+    'nr_of_partitions_to_try': 8,
+    'nr_of_cluster_sizes_to_check': 8,
+    'cluster_size_lower_factor': 0.9,  # Makes no sense to set it much lower than 1.0
+    'cluster_size_upper_factor': 1.1,
 }
