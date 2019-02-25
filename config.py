@@ -1,5 +1,8 @@
 import os
 
+# if set to True other algorithms may use sdp results of other algorithms in the same run
+use_previous_sdp_result = False
+
 base_directory = '/home/hubert/VectorColoring/'
 if not os.path.exists(base_directory):
     os.makedirs(base_directory)

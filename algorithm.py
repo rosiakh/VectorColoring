@@ -265,12 +265,12 @@ def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
 
         return result
 
-    if iteration == 1 and vector_coloring_in_file(graph, sdp_type):
+    if config.use_previous_sdp_result and iteration == 1 and vector_coloring_in_file(graph, sdp_type):
         L = read_vector_coloring_from_file(graph, sdp_type)
     else:
         M = compute_matrix_coloring(graph, sdp_type, verbose)
         L = cholesky_factorize(M)
-    if iteration == 1:
+    if config.use_previous_sdp_result and iteration == 1:
         save_vector_coloring_to_file(graph, sdp_type, L)
 
     return L

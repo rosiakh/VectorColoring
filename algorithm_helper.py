@@ -173,7 +173,7 @@ def show_dendrogram(z):
 
 
 def get_vector_coloring_filename(graph, strict):
-    filename = config.base_directory + '_' + graph.name + '_strict=' + str(strict) + '_VectorColoring'
+    filename = config.current_run_directory() + '/_' + graph.name + '_strict=' + str(strict) + '_VectorColoring'
 
     return filename
 
