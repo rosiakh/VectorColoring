@@ -115,3 +115,11 @@ def display_graph_stats(graph):
     print '     min degree:', min_degree
     print '     number of edges:', graph.number_of_edges()
     print '     edge density:', float(graph.number_of_edges()) / float((n * (n - 1) / 2))
+
+
+def save_graph_to_col_file(graph):
+    filename = 'graph_instances/generated/' + graph.name + '.col'
+
+    with open(filename, 'w') as outfile:
+        for e1, e2 in graph.edges():
+            outfile.write("e {0} {1}\n".format(e1, e2))
