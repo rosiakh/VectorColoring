@@ -69,8 +69,8 @@ def color_by_independent_sets(graph, L, colors, init_params):
     def get_nr_of_sets_at_once(graph):
         """Determines maximal number of independent sets found for one vector coloring."""
 
-        if nx.classes.density(graph) > 0.7 and graph.number_of_nodes() > 100:
-            return 10
+        if nx.classes.density(graph) > 0.5 and graph.number_of_nodes() > 100:
+            return max(1, int(math.floor((nx.classes.density(graph) + 0.5) * (graph.number_of_nodes() - 50) / 25)))
 
         return 1
 
