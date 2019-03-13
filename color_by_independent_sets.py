@@ -1,10 +1,22 @@
 import logging
 import math
+from multiprocessing import Process, Lock, Manager
 
 import networkx as nx
 from scipy.cluster.hierarchy import linkage, fcluster
 
 from algorithm_helper import *
+
+
+def better_ind_sets_parallel(graph, ind_sets1, ind_sets2):
+    """ind_sets2 are current best that get replaced """
+
+    best = ind_sets2
+    for i in range(len(ind_sets1)):
+        if better_ind_sets(graph, ind_sets1[i], best):
+            best = ind_sets1[i]
+
+    return best
 
 
 def better_ind_sets(graph, ind_sets1, ind_sets2):
@@ -51,7 +63,7 @@ def better_ind_sets(graph, ind_sets1, ind_sets2):
     return avg1 > avg2
 
 
-def color_by_independent_sets(graph, L, colors, init_params):
+def color_by_independent_sets_parallel(graph, L, colors, init_params):
     """This strategy finds one or more independent set finding it one list of sets at a time."""
 
     def update_colors_and_graph(graph, colors, ind_sets):
@@ -79,24 +91,84 @@ def color_by_independent_sets(graph, L, colors, init_params):
     # TODO: strategy of determining how many sets to get at once from find_ind_set_strategy
 
     best_ind_sets = None
-    nr_of_trials = 1 if init_params['deterministic'] else config.color_all_vertices_at_once_params[
-        'nr_of_partitions_to_try']
+
+    manager = Manager()
+    shmem_ind_sets = manager.list()
+    lock = Lock()
+    processes = []
+
+    iterations = 1 if init_params['deterministic'] else \
+        config.color_by_independent_sets_params['nr_of_times_restarting_ind_set_strategy'] / config.nr_of_parallel_jobs
+    nr_jobs = 1 if init_params['deterministic'] else config.nr_of_parallel_jobs
+
+    if iterations > 1 and graph.number_of_nodes() < 100:
+        iterations = max(int(float(graph.number_of_nodes()) / float(100) * iterations), 1)
+
+    for j in range(iterations):
+        for job in range(nr_jobs):
+            processes.append(Process(target=init_params['find_independent_sets_strategy'], args=(
+                graph, L, init_params, get_nr_of_sets_at_once(graph), shmem_ind_sets, lock)))
+
+        for p in processes:
+            p.start()
+
+        for p in processes:
+            p.join()
+
+        processes = []
+
+    best_ind_sets = better_ind_sets_parallel(graph, shmem_ind_sets, best_ind_sets)
+
+    update_colors_and_graph(graph, colors, best_ind_sets)
+    logging.debug('Found independent sets (maybe identical) of sizes: ' + str([len(s) for s in best_ind_sets]))
+
+
+def color_by_independent_sets(graph, L, colors, init_params):
+    """This strategy finds one or more independent set finding it one list of sets at a time."""
+
+    def update_colors_and_graph(graph, colors, ind_sets):
+
+        color = max(colors.values())
+        for ind_set in ind_sets:
+            color += 1
+            for v in ind_set:
+                if colors[v] == -1:
+                    colors[v] = color
+            graph.remove_nodes_from(ind_set)
+
+        logging.info('There are {0} vertices left to color'.format(graph.number_of_nodes()))
+
+    def get_nr_of_sets_at_once(graph):
+        """Determines maximal number of independent sets found for one vector coloring."""
+
+        # if nx.classes.density(graph) > 0.5 and graph.number_of_nodes() > 100:
+        #     return max(1, int(math.floor((nx.classes.density(graph) + 0.5) * (graph.number_of_nodes() - 50) / 25)))
+
+        if graph.number_of_nodes() > 130:
+            return 5
+
+        return 1
+
+    logging.info('Looking for independent sets...')
+
+    # TODO: strategy of determining how many sets to get at once from find_ind_set_strategy
+
+    best_ind_sets = None
+    nr_of_trials = 1 if init_params['deterministic'] else config.color_by_independent_sets_params[
+        'nr_of_times_restarting_ind_set_strategy']
+
     for it in range(nr_of_trials):
-        # sys.stdout.write("\r{0}/{1}".format(it, nr_of_trials))
-        # sys.stdout.flush()
         ind_sets = init_params['find_independent_sets_strategy'](
             graph, L, init_params, nr_of_sets=get_nr_of_sets_at_once(graph))  # Returns list of sets
 
         if better_ind_sets(graph, ind_sets, best_ind_sets):
             best_ind_sets = ind_sets
 
-    # sys.stdout.write("\r")
-    # sys.stdout.flush()
     update_colors_and_graph(graph, colors, best_ind_sets)
     logging.debug('Found independent sets (maybe identical) of sizes: ' + str([len(s) for s in best_ind_sets]))
 
 
-def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=1):
+def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=1, shmem_ind_sets=None, lock=None):
     """KMS according to Arora, Chlamtac, Charikar.
 
     Tries to return nr_of_sets but might return less.
@@ -158,10 +230,14 @@ def find_ind_sets_by_random_vector_projection(graph, L, init_params, nr_of_sets=
         if better_ind_sets(graph, ind_sets, best_ind_sets):
             best_ind_sets = ind_sets
 
+    if shmem_ind_sets is not None and lock is not None:
+        lock.acquire()
+        shmem_ind_sets.append(best_ind_sets)
+        lock.release()
     return best_ind_sets
 
 
-def find_ind_sets_by_clustering(graph, L, init_params, nr_of_sets=1):
+def find_ind_sets_by_clustering(graph, L, init_params, nr_of_sets=1, shmem_ind_sets=None, lock=None):
     """Returns independent sets. Tries to return nr_of_sets but might return less."""
 
     z = linkage(L, method='complete', metric='cosine')
@@ -198,4 +274,8 @@ def find_ind_sets_by_clustering(graph, L, init_params, nr_of_sets=1):
         if better_ind_sets(graph, ind_sets, best_ind_sets):
             best_ind_sets = ind_sets
 
+    if shmem_ind_sets is not None and lock is not None:
+        lock.acquire()
+        shmem_ind_sets.append(best_ind_sets)
+        lock.release()
     return best_ind_sets

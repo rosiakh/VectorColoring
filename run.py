@@ -9,7 +9,7 @@ from results_processing import *
 
 def do_run(fullpath, algorithm_name):
     # Logging configuration
-    logging.basicConfig(format='%(message)s', level=logging.INFO, datefmt='%I:%M:%S')
+    logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
     (_, filename) = os.path.split(fullpath)
     (graph_name, _) = os.path.splitext(filename)

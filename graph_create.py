@@ -108,18 +108,18 @@ def create_crown_graph(n):
     return graph
 
 
-def create_erdos_renyi_graph(n, p):
+def create_erdos_renyi_graph(n, p, name_suffix=""):
     """Creates random graph of type networkx.erdos_renyi_graph."""
 
     graph = nx.erdos_renyi_graph(n, p)
-    graph.name = 'erdos_renyi_{0}n_{1}p'.format(n, p)
+    graph.name = 'erdos_renyi_{0}n_{1}p'.format(n, p) + '_' + name_suffix
     graph.family = 'erdos_renyi'
     graph.starting_index = 0
 
     return graph
 
 
-def create_watts_strogatz_graph(n, k, p):
+def create_watts_strogatz_graph(n, k, p, name_suffix=""):
     """Creates random graph of type nx.connected_watts_strogatz_graph.
 
     Args:
@@ -129,14 +129,14 @@ def create_watts_strogatz_graph(n, k, p):
     """
 
     graph = nx.connected_watts_strogatz_graph(n, k, p)
-    graph.name = 'watts_strogatz_{0}n_{1}k_{2}p'.format(n, k, p)
+    graph.name = 'watts_strogatz_{0}n_{1}k_{2}p'.format(n, k, p) + '_' + name_suffix
     graph.family = 'watts_strogatz'
     graph.starting_index = 0
 
     return graph
 
 
-def create_barabasi_albert_graph(n, m):
+def create_barabasi_albert_graph(n, m, name_suffix=""):
     """Creates random graph of type networkx.dense_gnm_random_graph.
     Args:
         n (int): number of nodes
@@ -144,7 +144,7 @@ def create_barabasi_albert_graph(n, m):
     """
 
     graph = nx.dense_gnm_random_graph(n, m)
-    graph.name = 'barabasi_albert_{0}n_{1}m'.format(n, m)
+    graph.name = 'barabasi_albert_{0}n_{1}m'.format(n, m) + '_' + name_suffix
     graph.family = 'barabasi_albert'
     graph.starting_index = 0
 

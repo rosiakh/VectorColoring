@@ -34,7 +34,17 @@ def find_number_of_vector_colors_from_vector_coloring(graph, L):
     for i, j in graph.edges():
         cells.append(M[vertices_mapping[i], vertices_mapping[j]])
 
-    return 1 - 1 / max(cells)
+    mc = max(cells)
+    mc = mc if mc < 0 else -mc
+    k = 1 - 1 / mc
+    # try:
+    #     max_degree = max(dict(graph.degree()).values())
+    #     int(math.ceil(math.log(max_degree, k)))
+    # except ValueError:
+    #     import logging
+    #     logging.info("math domain error")
+
+    return k
 
 
 def has_edge_between_ith_and_jth(graph, i, j):

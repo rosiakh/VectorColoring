@@ -1,4 +1,5 @@
 """Module containing main algorithm logic."""
+
 import itertools
 import logging
 import sys
@@ -8,28 +9,9 @@ from networkx import Graph
 
 import color_all_vertices_at_once
 import color_by_independent_sets
-import wigderson
+# import wigderson
 from algorithm_helper import *
-
-partial_color_strategy_map = {
-    'color_all_vertices_at_once': color_all_vertices_at_once.color_all_vertices_at_once,
-    'color_by_independent_sets': color_by_independent_sets.color_by_independent_sets,
-}
-find_independent_sets_strategy_map = {
-    'random_vector_projection': color_by_independent_sets.find_ind_sets_by_random_vector_projection,
-    'clustering': color_by_independent_sets.find_ind_sets_by_clustering,
-    None: None,
-}
-partition_strategy_map = {
-    'hyperplane_partition': color_all_vertices_at_once.hyperplanes_partition_strategy,
-    'clustering': color_all_vertices_at_once.clustering_partition_strategy,
-    'kmeans_clustering': color_all_vertices_at_once.kmeans_clustering_partition_strategy,
-    None: None,
-}
-wigderson_strategy_map = {
-    'no_wigderson': wigderson.no_wigderson_strategy,
-    'recursive_wigderson': wigderson.recursive_wigderson_strategy,
-}
+from solver import compute_vector_coloring
 
 
 class ColoringAlgorithm:
@@ -58,6 +40,26 @@ class ColoringAlgorithm:
 
 
 class VectorColoringAlgorithm:
+    partial_color_strategy_map = {
+        'color_all_vertices_at_once': color_all_vertices_at_once.color_all_vertices_at_once,
+        'color_by_independent_sets': color_by_independent_sets.color_by_independent_sets,
+    }
+    find_independent_sets_strategy_map = {
+        'random_vector_projection': color_by_independent_sets.find_ind_sets_by_random_vector_projection,
+        'clustering': color_by_independent_sets.find_ind_sets_by_clustering,
+        None: None,
+    }
+    partition_strategy_map = {
+        'hyperplane_partition': color_all_vertices_at_once.hyperplanes_partition_strategy,
+        'clustering': color_all_vertices_at_once.clustering_partition_strategy,
+        'kmeans_clustering': color_all_vertices_at_once.kmeans_clustering_partition_strategy,
+        None: None,
+    }
+
+    # wigderson_strategy_map = {
+    #     'no_wigderson': wigderson.no_wigderson_strategy,
+    #     'recursive_wigderson': wigderson.recursive_wigderson_strategy,
+    # }
 
     def __init__(self,
                  partial_color_strategy,
@@ -74,21 +76,21 @@ class VectorColoringAlgorithm:
         # TODO: Check for wrong strategy parameters
 
         init_params = {
-            'partial_color_strategy': partial_color_strategy_map[partial_color_strategy],
-            'wigderson_strategy': wigderson_strategy_map[wigderson_strategy],
+            'partial_color_strategy': self.partial_color_strategy_map[partial_color_strategy],
+            # 'wigderson_strategy': self.wigderson_strategy_map[wigderson_strategy],
             'sdp_type': sdp_type,
             'independent_set_extraction_strategy': independent_set_extraction_strategy,
             'alg_name': alg_name,
-            'partition_strategy': partition_strategy_map[partition_strategy],
+            'partition_strategy': self.partition_strategy_map[partition_strategy],
             'normal_vectors_generation_strategy': normal_vectors_generation_strategy,
-            'find_independent_sets_strategy': find_independent_sets_strategy_map[find_independent_sets_strategy],
+            'find_independent_sets_strategy': self.find_independent_sets_strategy_map[find_independent_sets_strategy],
             'deterministic': deterministic,
         }
 
         # All values are strings; needed for recursive VectorColoringAlgorithm creation
         self._literal_init_params = init_params.copy()
         self._literal_init_params['partial_color_strategy'] = partial_color_strategy
-        self._literal_init_params['wigderson_strategy'] = wigderson_strategy
+        # self._literal_init_params['wigderson_strategy'] = wigderson_strategy
         self._literal_init_params['partition_strategy'] = partition_strategy
         self._literal_init_params['find_independent_sets_strategy'] = find_independent_sets_strategy
         self._literal_init_params['deterministic'] = deterministic
@@ -133,10 +135,11 @@ class VectorColoringAlgorithm:
             it += 1
             logging.info('\nStarting iteration nr {0} of main loop...'.format(it))
             if working_graph.number_of_nodes() > 1 and working_graph.number_of_edges() > 0:
-                L = compute_vector_coloring(working_graph, sdp_type=self._sdp_type, verbose=verbose, iteration=it)
-                if it == 1:
-                    if self._wigderson_strategy(working_graph, colors, L):
-                        continue  # Wigderson colored some vertices so we need to recompute vector coloring
+                L = compute_vector_coloring(
+                    working_graph, sdp_type=self._sdp_type, verbose=verbose, iteration=it)
+                # if it == 1:
+                #     if self._wigderson_strategy(working_graph, colors, L):
+                #         continue  # Wigderson colored some vertices so we need to recompute vector coloring
                 current_nodes = working_graph.number_of_nodes()
                 while working_graph.number_of_nodes() == current_nodes:
                     self._partially_color_strategy(working_graph, L, colors)
@@ -156,124 +159,6 @@ class VectorColoringAlgorithm:
 
     def get_algorithm_name(self):
         return self._name
-
-
-def compute_vector_coloring(graph, sdp_type, verbose, iteration=-1):
-    """Computes sdp_type vector coloring of graph using Cholesky decomposition.
-
-        Args:
-            graph (nx.Graph): Graph to be processed.
-            sdp_type (string): Non-strict, Strict or Strong coloring.
-            verbose (bool): Solver verbosity.
-            iteration (int): Number of main algorithm iteration. Used for vector coloring loading or saving.
-        Returns:
-              2-dim matrix: Rows of this matrix are vectors of computed vector coloring.
-        """
-
-    def cholesky_factorize(M):
-        """Returns L such that M = LL^T.
-
-            According to https://en.wikipedia.org/wiki/Cholesky_decomposition#Proof_for_positive_semi-definite_matrices
-                if L is positive semi-definite then we can turn it into positive definite by adding eps*I.
-
-            We can also perform LDL' decomposition and set L = LD^(1/2) - it works in Matlab even though M is singular.
-
-            It sometimes returns an error if M was computed with big tolerance for error.
-
-            Args:
-                M (2-dim matrix): Positive semidefinite matrix to be factorized.
-
-            Returns:
-                L (2-dim matrix): Cholesky factorization of M such that M = LL^T.
-            """
-
-        logging.info('Starting Cholesky factorization...')
-
-        eps = 1e-7
-        for i in range(M.shape[0]):
-            M[i, i] = M[i, i] + eps
-
-        M = np.linalg.cholesky(M)
-
-        logging.info('Cholesky factorization computed')
-        return M
-
-    def compute_matrix_coloring(graph, sdp_type, verbose):
-        """Finds matrix coloring M of graph using Mosek solver.
-
-        Args:
-            graph (nx.Graph): Graph to be processed.
-            sdp_type (string): Non-strict, Strict or Strong vector coloring.
-            verbose (bool): Sets verbosity level of solver.
-
-        Returns:
-            2-dim matrix: Matrix coloring of graph G.
-
-        Notes:
-            Maybe we can add epsilon to SDP constraints instead of 'solve' parameters?
-
-            For some reason optimal value of alpha is greater than value computed from M below if SDP is solved with big
-                tolerance for error
-
-            TODO: strong vector coloring
-        """
-
-        logging.info('Computing matrix coloring of graph with {0} nodes and {1} edges...'.format(
-            graph.number_of_nodes(), graph.number_of_edges()
-        ))
-
-        with Model() as M:
-
-            # Variables
-            n = graph.number_of_nodes()
-            alpha = M.variable(Domain.lessThan(0.))
-            m = M.variable(Domain.inPSDCone(n))
-
-            # Constraints
-            M.constraint(m.diag(), Domain.equalsTo(1.0))
-            for i in range(n):
-                for j in range(n):
-                    if i > j and has_edge_between_ith_and_jth(graph, i, j):
-                        if sdp_type == 'strict' or sdp_type == 'strong':
-                            M.constraint(Expr.sub(m.index(i, j), alpha),
-                                         Domain.equalsTo(0.))
-                        elif sdp_type == 'nonstrict':
-                            M.constraint(Expr.sub(m.index(i, j), alpha),
-                                         Domain.lessThan(0.))
-                    elif sdp_type == 'strong':
-                        M.constraint(Expr.add(m.index(i, j), alpha),
-                                     Domain.greaterThan(0.))
-
-            # Objective
-            M.objective(ObjectiveSense.Minimize, alpha)
-
-            # Set solver parameters
-            M.setSolverParam("numThreads", 0)
-
-            # with open(config.logs_directory() + 'logs', 'w') as outfile:
-            #     if verbose:
-            #         M.setLogHandler(outfile)
-
-            M.solve()
-
-            alpha_opt = alpha.level()[0]
-            level = m.level()
-            result = [[level[j * n + i] for i in range(n)] for j in range(n)]
-            result = np.array(result)
-
-        logging.info('Found matrix {0}-coloring'.format(1 - 1 / alpha_opt))
-
-        return result
-
-    if config.use_previous_sdp_result and iteration == 1 and vector_coloring_in_file(graph, sdp_type):
-        L = read_vector_coloring_from_file(graph, sdp_type)
-    else:
-        M = compute_matrix_coloring(graph, sdp_type, verbose)
-        L = cholesky_factorize(M)
-    if config.use_previous_sdp_result and iteration == 1:
-        save_vector_coloring_to_file(graph, sdp_type, L)
-
-    return L
 
 
 def compute_optimal_coloring_lp(graph, verbose=False):

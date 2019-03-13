@@ -7,11 +7,15 @@ from datetime import datetime
 from timeit import default_timer as timer
 
 from algorithm import *
+from graph_create import *
 from graph_io import *
 from results_processing import *
 
+# gg = create_k_cycle(n=250, k=24)  # done (second time error RVP)
+# save_graph_to_col_file(gg)
+
 # Logging configuration
-logging.basicConfig(format='%(message)s', level=logging.INFO, datefmt='%I:%M:%S')
+logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
 # Test graph creation
 graphs = []
