@@ -1,11 +1,14 @@
 """Module for loading, saving and displaying graphs."""
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pylab
+
+import config
 
 
 def read_graph_from_file(folder_name, graph_name, graph_type=None, starting_index=0, fullpath=None):
@@ -58,7 +61,7 @@ def draw_graph(graph, colors, toConsole=True, toImage=False, filename='graph'):
         filename (str): File to save.
     """
 
-    output_dir = '/home/hubert/Desktop/vc-graphs'
+    output_dir = config.drawings_directory()
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -82,7 +85,11 @@ def draw_graph(graph, colors, toConsole=True, toImage=False, filename='graph'):
 
     if toImage:
         node_labels = {v: str(v + 0) for v in range(graph.number_of_nodes())}
-        fig = pylab.figure(figsize=(11, 8))
+        logging.getLogger("matplotlib.backends._backend_tk").setLevel(logging.CRITICAL)
+        fig = pylab.figure(figsize=(10, 7))
+        # thismanager = matplotlib.pyplot.get_current_fig_manager()
+        # img = BitmapImage(file='favicon.bmp')
+        # thismanager.window.tk.call('wm', 'iconphoto', thismanager.window._w, img)
 
         nx.draw(graph, pos=nx.circular_layout(graph), with_labels=True, node_color=colors_list, cmap=plt.cm.Spectral,
                 labels=node_labels)
@@ -92,7 +99,7 @@ def draw_graph(graph, colors, toConsole=True, toImage=False, filename='graph'):
         fig.gca().axes.get_yaxis().set_ticks([])
 
         pylab.savefig('{0}/{1}.png'.format(output_dir, filename), format="PNG")
-        # pylab.show()
+        pylab.show()
 
 
 def display_graph_stats(graph):

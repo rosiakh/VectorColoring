@@ -16,7 +16,7 @@ def do_run(fullpath, algorithm_name):
     graph = read_graph_from_file(folder_name="", graph_name=graph_name, graph_type=None, starting_index=0,
                                  fullpath=fullpath)
 
-    algorithm = algorithm_config.algorithms[algorithm_name]
+    algorithm = algorithm_config.algorithms[algorithm_name][0]
 
     graphs = [graph]
     algorithms = [algorithm]
@@ -61,6 +61,8 @@ def do_run(fullpath, algorithm_name):
             if not check_if_coloring_legal(graph, results.best_coloring):
                 raise Exception(
                     'Coloring obtained by {0} on {1} is not legal'.format(results.algorithm.name, graph.name))
+
+    return algorithms_results
 
 
 if __name__ == "__main__":

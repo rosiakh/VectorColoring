@@ -15,6 +15,14 @@ if not os.path.exists(base_directory):
 run_seed = ''  # A String used to differentiate between runs of algorithm, set at run's start.
 
 
+def drawings_directory(seed=None):
+    if seed is None:
+        seed = run_seed
+    directory = current_run_directory(seed) + 'Drawings/'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return directory
+
 def vector_colorings_directory(seed=None):
     if seed is None:
         seed = run_seed
