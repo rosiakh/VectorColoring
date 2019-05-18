@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import Tkinter as tk
 import logging
 import random
@@ -26,7 +27,7 @@ def choose_graph_command():
     global draw_graph_button
     tk_path.set(askopenfilename())
     color_graph_button.config(state=tk.NORMAL)
-    draw_graph_button.config(state=tk.NORMAL)
+    # draw_graph_button.config(state=tk.NORMAL)
     logging.info("You've chosen a graph: {0}".format(tk_path.get()))
 
 
@@ -36,16 +37,16 @@ coloring = None
 
 def do_color_command():
     global algorithm_results
+    algorithm_results = run.do_run(tk_path.get(), tk_algorithm_name.get())
+    # color_graph_button.config(state=tk.DISABLED)
+    # draw_graph_button.config(state=tk.DISABLED)
 
-    color_graph_button.config(state=tk.DISABLED)
-    draw_graph_button.config(state=tk.DISABLED)
+    # from multiprocessing.pool import ThreadPool
+    # pool = ThreadPool(processes=1)
+    # async_result = pool.apply_async(run.do_run, (tk_path.get(), tk_algorithm_name.get()))
+    # algorithm_results = async_result.get()
 
-    from multiprocessing.pool import ThreadPool
-    pool = ThreadPool(processes=1)
-    async_result = pool.apply_async(run.do_run, (tk_path.get(), tk_algorithm_name.get()))
-    algorithm_results = async_result.get()
-
-    color_graph_button.config(state=tk.NORMAL)
+    # color_graph_button.config(state=tk.NORMAL)
     draw_graph_button.config(state=tk.NORMAL)
 
     # algorithm_results = run.do_run(tk_path.get(), tk_algorithm_name.get())
