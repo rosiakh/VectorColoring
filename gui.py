@@ -61,15 +61,15 @@ def draw_graph_command():
 
 button_width = 20
 button_height = 2
-choose_graph_button = tk.Button(root, text='Choose a graph', command=choose_graph_command,
+choose_graph_button = tk.Button(root, text='Wybierz graf', command=choose_graph_command,
                                 width=button_width, height=button_height)
 choose_graph_button.pack(pady=10)
 
-color_graph_button = tk.Button(root, text='Color graph', state=tk.DISABLED, command=do_color_command,
+color_graph_button = tk.Button(root, text='Pokoloruj graf', state=tk.DISABLED, command=do_color_command,
                                width=button_width, height=button_height)
 color_graph_button.pack(pady=10)
 
-draw_graph_button = tk.Button(root, text='Draw graph', state=tk.DISABLED, command=draw_graph_command,
+draw_graph_button = tk.Button(root, text='Narysuj graf', state=tk.DISABLED, command=draw_graph_command,
                               width=button_width, height=button_height)
 draw_graph_button.pack(pady=10)
 

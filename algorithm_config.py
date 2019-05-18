@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 partial_color_strategy:
         'color_all_vertices_at_once',
@@ -38,7 +39,19 @@ from results_processing import *
 
 algorithms = {}
 
-algorithms['orthonormal_hyperplane_partition'] = [VectorColoringAlgorithm(
+# the number next to algorithm configuration is it's position in gui
+
+algorithms['Koloruj i popraw: klasteryzacja'] = [VectorColoringAlgorithm(
+    partial_color_strategy='color_all_vertices_at_once',
+    partition_strategy='clustering',
+    independent_set_extraction_strategy='max_degree_first',
+    wigderson_strategy='no_wigderson',
+    sdp_type='nonstrict',
+    alg_name='clustering all vertices',
+    deterministic=True
+), 6]
+
+algorithms['Koloruj i popraw: ortonormalne hiperpłaszczyzny'] = [VectorColoringAlgorithm(
     partial_color_strategy='color_all_vertices_at_once',
     partition_strategy='hyperplane_partition',
     normal_vectors_generation_strategy='orthonormal',
@@ -49,17 +62,7 @@ algorithms['orthonormal_hyperplane_partition'] = [VectorColoringAlgorithm(
     deterministic=False
 ), 4]
 
-algorithms['clustering_all_vertices'] = [VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
-    partition_strategy='clustering',
-    independent_set_extraction_strategy='max_degree_first',
-    wigderson_strategy='no_wigderson',
-    sdp_type='nonstrict',
-    alg_name='clustering all vertices',
-    deterministic=True
-), 6]
-
-algorithms['random_hyperplane_partition'] = [VectorColoringAlgorithm(
+algorithms['Koloruj i popraw: losowe hiperpłaszczyzny'] = [VectorColoringAlgorithm(
     partial_color_strategy='color_all_vertices_at_once',
     partition_strategy='hyperplane_partition',
     normal_vectors_generation_strategy='random_normal',
@@ -70,7 +73,7 @@ algorithms['random_hyperplane_partition'] = [VectorColoringAlgorithm(
     deterministic=False
 ), 5]
 
-algorithms['random_vector_projection'] = [VectorColoringAlgorithm(
+algorithms['Strategia zbiorów niezależnych: rzutowanie wektorów'] = [VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
     find_independent_sets_strategy='random_vector_projection',
     independent_set_extraction_strategy='max_degree_first',
@@ -80,7 +83,7 @@ algorithms['random_vector_projection'] = [VectorColoringAlgorithm(
     deterministic=False
 ), 7]
 
-algorithms['clustering_independent_sets'] = [VectorColoringAlgorithm(
+algorithms['Strategia zbiorów niezależnych: klasteryzacja'] = [VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
     find_independent_sets_strategy='clustering',
     independent_set_extraction_strategy='max_degree_first',
@@ -90,14 +93,14 @@ algorithms['clustering_independent_sets'] = [VectorColoringAlgorithm(
     deterministic=True
 ), 8]
 
-algorithms['greedy_independent_set'] = [ColoringAlgorithm(
+algorithms['Greedy Independent Set'] = [ColoringAlgorithm(
     lambda graph: nx.algorithms.coloring.greedy_color(graph, strategy='independent_set'), 'greedy_independent_set'), 0]
 
-algorithms['dsatur'] = [ColoringAlgorithm(
+algorithms['DSATUR'] = [ColoringAlgorithm(
     lambda graph: nx.algorithms.coloring.greedy_color(graph, strategy='DSATUR'), 'dsatur'), 1]
 
-algorithms['optimal_coloring_linear_programming'] = [ColoringAlgorithm(
+algorithms['Kolorowanie optymalne (programowanie liniowe)'] = [ColoringAlgorithm(
     lambda graph: compute_optimal_coloring_lp(graph, verbose=True), 'optimal_lp'), 2]
 
-algorithms['optimal_coloring_dynamic_programming'] = [ColoringAlgorithm(
+algorithms['Kolorowanie optymalne (programowanie dynamiczne)'] = [ColoringAlgorithm(
     lambda graph: compute_optimal_coloring_dp(graph, verbose=True), 'optimal_dp'), 3]
