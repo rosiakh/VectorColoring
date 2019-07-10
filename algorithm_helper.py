@@ -151,7 +151,7 @@ def get_lowest_legal_color(graph, vertex, coloring):
     return len(taken_colors)
 
 
-def extract_independent_subset(vertices, edges, strategy='max_degree_first'):
+def extract_independent_subset(vertices, edges, strategy='max_degree_first', verbose=False):
     """Returns subset of vertices that constitute an independent set."""
 
     subgraph = nx.Graph()
@@ -164,7 +164,12 @@ def extract_independent_subset(vertices, edges, strategy='max_degree_first'):
     subgraph.remove_nodes_from(nodes_to_del)
     ind_set = set(subgraph.nodes())
 
-    return ind_set
+    extracted_ratio = 100 * float(len(ind_set)) / (len(vertices) + 0.00001)
+    if verbose:
+        print 'Out of {0}-node set, extracted {1}-node ind set, i.e. {2}%' \
+            .format(len(vertices), len(ind_set), extracted_ratio)
+
+    return ind_set, extracted_ratio
 
 
 def show_dendrogram(z):

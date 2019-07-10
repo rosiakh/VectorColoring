@@ -7,7 +7,7 @@ import sys
 from mosek.fusion import *
 from networkx import Graph
 
-import color_all_vertices_at_once
+import color_and_fix
 import color_by_independent_sets
 # import wigderson
 from algorithm_helper import *
@@ -41,7 +41,7 @@ class ColoringAlgorithm:
 
 class VectorColoringAlgorithm:
     partial_color_strategy_map = {
-        'color_all_vertices_at_once': color_all_vertices_at_once.color_all_vertices_at_once,
+        'color_and_fix': color_and_fix.color_all_vertices_at_once,
         'color_by_independent_sets': color_by_independent_sets.color_by_independent_sets,
     }
     find_independent_sets_strategy_map = {
@@ -50,9 +50,9 @@ class VectorColoringAlgorithm:
         None: None,
     }
     partition_strategy_map = {
-        'hyperplane_partition': color_all_vertices_at_once.hyperplanes_partition_strategy,
-        'clustering': color_all_vertices_at_once.clustering_partition_strategy,
-        'kmeans_clustering': color_all_vertices_at_once.kmeans_clustering_partition_strategy,
+        'hyperplane_partition': color_and_fix.hyperplanes_partition_strategy,
+        'clustering': color_and_fix.clustering_partition_strategy,
+        'kmeans_clustering': color_and_fix.kmeans_clustering_partition_strategy,
         None: None,
     }
 

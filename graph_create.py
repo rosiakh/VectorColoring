@@ -151,6 +151,17 @@ def create_barabasi_albert_graph(n, m, name_suffix=""):
     return graph
 
 
+def create_star(n):
+    """Creates star with 1 central node and n 1-degree nodes."""
+
+    graph = nx.star_graph(n)
+    graph.name = 'star_{0}n'.format(n)
+    graph.family = 'star'
+    graph.starting_index = 0
+
+    return graph
+
+
 def create_set_of_random_graphs(
         min_vertices=20,
         max_vertices=40,

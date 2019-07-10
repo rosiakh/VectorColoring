@@ -4,8 +4,8 @@ import os
 use_previous_sdp_result = False
 solver_name = 'mosek'  # other possibilities: cvxopt; maybe try picos as well
 solver_verbose = True
-parallel = True
-nr_of_parallel_jobs = 6
+parallel = False
+nr_of_parallel_jobs = 1
 
 
 base_directory = '/home/hubert/VectorColoring/'
@@ -52,12 +52,12 @@ def current_run_directory(seed=None):
 
 color_by_independent_sets_params = {
     'nr_of_times_restarting_ind_set_strategy': 1,  # it enables parallelism so at least 8
-    'nr_of_random_vectors_tried': 30,
+    'nr_of_random_vectors_tried': 1,
     'max_nr_of_random_vectors_without_change': 15,
     'c_param_lower_factor': 0.3,
     'c_param_upper_factor': 1.5,
-    'nr_of_c_params_tried_per_random_vector': 5,
-    'nr_of_cluster_sizes_to_check': 15,
+    'nr_of_c_params_tried_per_random_vector': 1,
+    'nr_of_cluster_sizes_to_check': 1,
     'cluster_size_lower_factor': 0.9,  # Makes no sense to set it much lower than 1.0
     'cluster_size_upper_factor': 1.5,
 }

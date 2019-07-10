@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 partial_color_strategy:
-        'color_all_vertices_at_once',
+        'color_and_fix',
         'color_by_independent_sets'
 
 independent_set_extraction_strategy:
@@ -42,7 +42,7 @@ algorithms = {}
 # the number next to algorithm configuration is it's position in gui
 
 algorithms[u'Koloruj i popraw: klasteryzacja'] = [VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
+    partial_color_strategy='color_and_fix',
     partition_strategy='clustering',
     independent_set_extraction_strategy='max_degree_first',
     wigderson_strategy='no_wigderson',
@@ -52,7 +52,7 @@ algorithms[u'Koloruj i popraw: klasteryzacja'] = [VectorColoringAlgorithm(
 ), 6]
 
 algorithms[u'Koloruj i popraw: ortonormalne hiperpłaszczyzny'] = [VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
+    partial_color_strategy='color_and_fix',
     partition_strategy='hyperplane_partition',
     normal_vectors_generation_strategy='orthonormal',
     independent_set_extraction_strategy='max_degree_first',
@@ -63,7 +63,7 @@ algorithms[u'Koloruj i popraw: ortonormalne hiperpłaszczyzny'] = [VectorColorin
 ), 4]
 
 algorithms[u'Koloruj i popraw: losowe hiperpłaszczyzny'] = [VectorColoringAlgorithm(
-    partial_color_strategy='color_all_vertices_at_once',
+    partial_color_strategy='color_and_fix',
     partition_strategy='hyperplane_partition',
     normal_vectors_generation_strategy='random_normal',
     independent_set_extraction_strategy='max_degree_first',
@@ -73,7 +73,7 @@ algorithms[u'Koloruj i popraw: losowe hiperpłaszczyzny'] = [VectorColoringAlgor
     deterministic=False
 ), 5]
 
-algorithms[u'Strategia zbiorów niezależnych: rzutowanie wektorów'] = [VectorColoringAlgorithm(
+algorithms['IndSet vector projection'] = [VectorColoringAlgorithm(
     partial_color_strategy='color_by_independent_sets',
     find_independent_sets_strategy='random_vector_projection',
     independent_set_extraction_strategy='max_degree_first',
