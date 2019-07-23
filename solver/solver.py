@@ -1,0 +1,221 @@
+import logging
+import sys
+
+import cvxpy
+from mosek.fusion import *
+from numpy.linalg import LinAlgError
+
+from coloring.algorithm_helper import *
+from configuration import algorithm_options_config
+
+mosek_params_default = {
+    'MSK_DPAR_INTPNT_CO_TOL_REL_GAP': 1e-7,
+    'MSK_DPAR_INTPNT_CO_TOL_PFEAS': 1e-8,
+    'MSK_DPAR_INTPNT_CO_TOL_MU_RED': 1e-8,
+    'MSK_DPAR_INTPNT_CO_TOL_INFEAS': 1e-10,
+    'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-8,
+    'MSK_DPAR_SEMIDEFINITE_TOL_APPROX': 1e-10
+}
+
+mosek_params = {
+    'MSK_DPAR_INTPNT_CO_TOL_REL_GAP': 1e-4,
+    'MSK_DPAR_INTPNT_CO_TOL_PFEAS': 1e-5,
+    'MSK_DPAR_INTPNT_CO_TOL_MU_RED': 1e-5,
+    'MSK_DPAR_INTPNT_CO_TOL_INFEAS': 1e-7,
+    'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-5,
+    'MSK_DPAR_SEMIDEFINITE_TOL_APPROX': 1e-10
+}
+
+
+def compute_vector_coloring(graph, sdp_type):
+    """Computes sdp_type vector coloring of graph using Cholesky decomposition.
+
+        Args:
+            graph (nx.Graph): Graph to be processed.
+            sdp_type (string): Non-strict, Strict or Strong coloring.
+            iteration (int): Number of main algorithm iteration. Used for vector coloring loading or saving.
+        Returns:
+              2-dim matrix: Rows of this matrix are vectors of computed vector coloring.
+        """
+
+    m = compute_matrix_coloring(graph, sdp_type)
+    vector_coloring = cholesky_factorize(m)
+
+    return vector_coloring
+
+
+def cholesky_factorize(m):
+    """Returns L such that m = LL^T.
+
+        According to https://en.wikipedia.org/wiki/Cholesky_decomposition#Proof_for_positive_semi-definite_matrices
+            if L is positive semi-definite then we can turn it into positive definite by adding eps*I.
+
+        We can also perform LDL' decomposition and set L = LD^(1/2) - it works in Matlab even though M is singular.
+
+        It sometimes returns an error if M was computed with big tolerance for error.
+
+        Args:
+            m (2-dim matrix): Positive semidefinite matrix to be factorized.
+
+        Returns:
+            L (2-dim matrix): Cholesky factorization of M such that M = LL^T.
+        """
+
+    logging.info('Starting Cholesky factorization...')
+
+    try:
+        m = np.linalg.cholesky(m)
+    except LinAlgError:
+        eps = 1e-7
+        for i in range(m.shape[0]):
+            m[i, i] = m[i, i] + eps
+        m = np.linalg.cholesky(m)
+
+    logging.info('Cholesky factorization computed')
+    return m
+
+
+def compute_matrix_coloring(graph, sdp_type):
+    """Finds matrix coloring M of graph using Mosek solver.
+
+    Args:
+        graph (nx.Graph): Graph to be processed.
+        sdp_type (string): Non-strict, Strict or Strong vector coloring.
+
+    Returns:
+        2-dim matrix: Matrix coloring of graph G.
+
+    Notes:
+        Maybe we can add epsilon to SDP constraints instead of 'solve' parameters?
+
+        For some reason optimal value of alpha is greater than value computed from M below if SDP is solved with big
+            tolerance for error
+    """
+
+    logging.info('Computing matrix coloring of graph with {0} nodes and {1} edges...'.format(
+        graph.number_of_nodes(), graph.number_of_edges()
+    ))
+
+    if algorithm_options_config.solver_name == 'mosek':
+        result, alpha_opt = solve_mosek(graph, sdp_type)
+    elif algorithm_options_config.solver_name == 'cvxopt':
+        result, alpha_opt = solve_cvxopt(graph, sdp_type)
+    else:
+        raise Exception('Unknown solver name')
+
+    logging.info('Found matrix {0}-coloring'.format(1 - 1 / alpha_opt))
+
+    return result
+
+
+def solve_mosek(graph, sdp_type):
+    with Model() as Mdl:
+        # Variables
+        n = graph.number_of_nodes()
+        alpha = Mdl.variable(Domain.lessThan(0.))
+        m = Mdl.variable(Domain.inPSDCone(n))
+
+        if n <= algorithm_options_config.sdp_strong_threshold:
+            sdp_type = 'strong'
+
+        # Constraints
+        if sdp_type == 'nonstrict':
+            add_sdp_nonstrict_constraints(graph, Mdl, m, alpha)
+        elif sdp_type == 'strict':
+            add_sdp_strict_constraints(graph, Mdl, m, alpha)
+        elif sdp_type == 'strong':
+            add_sdp_strong_constraints(graph, Mdl, m, alpha)
+
+        # Objective
+        Mdl.objective(ObjectiveSense.Minimize, alpha)
+
+        # with open(config.logs_directory() + 'logs', 'w') as outfile:
+        if algorithm_options_config.solver_verbose:
+            Mdl.setLogHandler(sys.stdout)
+
+        Mdl.solve()
+
+        alpha_opt = alpha.level()[0]
+        level = m.level()
+        result = [[level[j * n + i] for i in range(n)] for j in range(n)]
+        result = np.array(result)
+
+        return result, alpha_opt
+
+
+def add_sdp_nonstrict_constraints(graph, model, matrix, alpha):
+    n = graph.number_of_nodes()
+
+    model.constraint(matrix.diag(), Domain.equalsTo(1.0))
+    for i in range(n):
+        for j in range(i):
+            if has_edge_between_ith_and_jth(graph, i, j):
+                model.constraint(Expr.sub(matrix.index(i, j), alpha), Domain.lessThan(0.))
+
+
+def add_sdp_strict_constraints(graph, model, matrix, alpha):
+    n = graph.number_of_nodes()
+
+    model.constraint(matrix.diag(), Domain.equalsTo(1.0))
+    for i in range(n):
+        for j in range(i):
+            if has_edge_between_ith_and_jth(graph, i, j):
+                model.constraint(Expr.sub(matrix.index(i, j), alpha), Domain.equalsTo(0.))
+
+
+def add_sdp_strong_constraints(graph, model, matrix, alpha):
+    n = graph.number_of_nodes()
+
+    model.constraint(matrix.diag(), Domain.equalsTo(1.0))
+    for i in range(n):
+        for j in range(i):
+            if has_edge_between_ith_and_jth(graph, i, j):
+                model.constraint(Expr.sub(matrix.index(i, j), alpha), Domain.equalsTo(0.))
+            else:
+                model.constraint(Expr.add(matrix.index(i, j), alpha), Domain.greaterThan(0.))
+
+
+def solve_cvxopt(graph, sdp_type):
+    n = graph.number_of_nodes()
+
+    # I must be doing something wrong with the model definition - too many constraints and variables
+
+    # Variables
+    alpha = cvxpy.Variable()
+    mat = cvxpy.Variable((n, n), PSD=True)
+
+    # Constraints (can be done using trace as well)
+    constraints = []
+    for i in range(n):
+        constraints += [mat[i, i] == 1]
+
+    for i in range(n):
+        for j in range(n):
+            if i > j and has_edge_between_ith_and_jth(graph, i, j):
+                constraints += [mat[i, j] <= alpha]
+
+    # Objective
+    objective = cvxpy.Minimize(alpha)
+
+    # Create problem instance
+    problem = cvxpy.Problem(objective, constraints)
+
+    # Solve
+    try:
+        problem.solve(
+            solver=cvxpy.MOSEK,
+            verbose=algorithm_options_config.solver_verbose,
+            warm_start=True,
+            mosek_params=mosek_params)
+        alpha_opt = alpha.value
+        result = mat.value
+    except cvxpy.error.SolverError:
+        print '\nError in mosek, changing to cvxopt\n'
+        problem.solve(
+            solver=cvxpy.CVXOPT,
+            verbose=algorithm_options_config.solver_verbose,
+            warm_start=True)
+        alpha_opt = alpha.value
+        result = mat.value
+
+    return result, alpha_opt
