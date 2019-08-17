@@ -88,4 +88,5 @@ def compute_c_opt(graph, vector_coloring):
     else:
         c = 0.0
 
+    return 0.4  # todo
     return c

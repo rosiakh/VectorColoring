@@ -110,6 +110,17 @@ def create_crown_graph(n):
     return graph
 
 
+def create_star(n):
+    """Creates star with 1 central node and n nodes of degree 1."""
+
+    graph = nx.star_graph(n)
+    graph.name = 'star_{0}n'.format(n)
+    graph.family = 'star'
+    graph.starting_index = 0
+
+    return graph
+
+
 def create_erdos_renyi_graph(n, p, name_suffix=""):
     """Creates random graph of type networkx.erdos_renyi_graph."""
 

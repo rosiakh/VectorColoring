@@ -27,6 +27,30 @@ mosek_params = {
 }
 
 
+def compute_dummy_vector_coloring(graph, beta_factor_strategy, is_alpha_constrained):
+    dummy_matrix_coloring = compute_dummy_matrix_coloring(graph, beta_factor_strategy, is_alpha_constrained)
+    dummy_vector_coloring = cholesky_factorize(dummy_matrix_coloring)
+
+    # draw_distributions(dummy_matrix_coloring, 1.0)
+    return dummy_vector_coloring
+
+
+def compute_dummy_matrix_coloring(graph, beta_factor_strategy, is_alpha_constrained):
+    logging.info('Computing dummy matrix coloring of graph with {0} nodes and {1} edges...'.format(
+        graph.number_of_nodes(), graph.number_of_edges()
+    ))
+
+    if algorithm_options_config.solver_name == 'mosek':
+        dummy_matrix_coloring, alpha_opt = find_dummy_matrix_coloring_mosek(
+            graph, beta_factor_strategy, is_alpha_constrained)
+    else:
+        raise Exception('Unknown solver name')
+
+    logging.info('Found matrix {0}-coloring'.format(1 - 1 / alpha_opt))
+
+    return dummy_matrix_coloring
+
+
 def compute_vector_coloring(graph, sdp_type):
     """Computes sdp_type vector coloring of graph using Cholesky decomposition.
 
@@ -38,8 +62,8 @@ def compute_vector_coloring(graph, sdp_type):
               2-dim matrix: Rows of this matrix are vectors of computed vector coloring.
         """
 
-    m = compute_matrix_coloring(graph, sdp_type)
-    vector_coloring = cholesky_factorize(m)
+    matrix_coloring = compute_matrix_coloring(graph, sdp_type)
+    vector_coloring = cholesky_factorize(matrix_coloring)
 
     return vector_coloring
 
@@ -97,15 +121,71 @@ def compute_matrix_coloring(graph, sdp_type):
     ))
 
     if algorithm_options_config.solver_name == 'mosek':
-        result, alpha_opt = solve_mosek(graph, sdp_type)
+        matrix_coloring, alpha_opt = solve_mosek(graph, sdp_type)
     elif algorithm_options_config.solver_name == 'cvxopt':
-        result, alpha_opt = solve_cvxopt(graph, sdp_type)
+        matrix_coloring, alpha_opt = solve_cvxopt(graph, sdp_type)
     else:
         raise Exception('Unknown solver name')
 
     logging.info('Found matrix {0}-coloring'.format(1 - 1 / alpha_opt))
 
-    return result
+    return matrix_coloring
+
+
+def find_dummy_matrix_coloring_mosek(graph, beta_factors_strategy, is_alpha_constrained):
+    with Model() as Mdl:
+        # Variables
+        n = graph.number_of_nodes()
+        if is_alpha_constrained:
+            alpha = Mdl.variable(Domain.lessThan(0.))
+        else:
+            alpha = Mdl.variable(Domain.inRange(-1, 1))
+        m = Mdl.variable(Domain.inPSDCone(n + 1))
+        betas = Mdl.variable(n, Domain.inRange(-1, 1))
+
+        # Constraints
+        add_dummy_constraints(graph, Mdl, m, alpha, betas)
+
+        # Objective
+        beta_factors = create_beta_factors(graph, beta_factors_strategy)
+        Mdl.objective(ObjectiveSense.Minimize, Expr.add(Expr.mul(n, alpha), Expr.sum(Expr.mulElm(beta_factors, betas))))
+
+        # with open(config.logs_directory() + 'logs', 'w') as outfile:
+        if algorithm_options_config.solver_verbose:
+            Mdl.setLogHandler(sys.stdout)
+
+        Mdl.solve()
+
+        alpha_opt = alpha.level()[0]
+        level = m.level()
+        dummy_matrix_coloring = [[level[j * (n + 1) + i] for i in range(n + 1)] for j in range(n + 1)]
+        dummy_matrix_coloring = np.array(dummy_matrix_coloring)
+
+        return dummy_matrix_coloring, alpha_opt
+
+
+def create_beta_factors(graph, beta_factors_strategy):
+    n = graph.number_of_nodes()
+
+    if beta_factors_strategy['name'] == "uniform":
+        beta_factors = [beta_factors_strategy['factor']] * n
+    else:
+        raise Exception("Unknown beta factors strategy")
+
+    return beta_factors
+
+
+def add_dummy_constraints(graph, model, matrix, alpha, betas):
+    n = graph.number_of_nodes()
+
+    model.constraint(matrix.diag(), Domain.equalsTo(1.0))
+    for i in range(n):
+        for j in range(i):
+            if has_edge_between_ith_and_jth(graph, i, j):
+                model.constraint(Expr.sub(matrix.index(i, j), alpha), Domain.lessThan(0.))
+
+    for i in range(n):
+        model.constraint(Expr.sub(matrix.index(n, i), betas.index(i)), Domain.lessThan(0.))
 
 
 def solve_mosek(graph, sdp_type):

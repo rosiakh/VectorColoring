@@ -56,8 +56,8 @@ def compute_optimal_coloring_lp(graph):
     return coloring
 
 
-def compute_optimal_coloring_dp(graph):
-    """Computes optimal coloring using dynamic programming."""
+def compute_optimal_coloring_dp(graph, partial_coloring=None, update_graph_and_coloring=False):
+    """ Computes optimal coloring using dynamic programming and updates graph and partial coloring. """
 
     t_sets = {w: [] for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}
     t = {w: -1 for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}  # set(w)
@@ -101,6 +101,8 @@ def compute_optimal_coloring_dp(graph):
     vertices = tuple(graph.nodes())
     while vertices:
         i_set = t_sets[vertices]
+        if isinstance(i_set, list):
+            i_set = i_set[0]
         vertices = tuple(v for v in vertices if v not in i_set)
         ind_sets.append(i_set)
 
@@ -110,5 +112,14 @@ def compute_optimal_coloring_dp(graph):
         clr += 1
         for v in v_set:
             coloring[v] = clr
+
+    if update_graph_and_coloring:
+        color = max(partial_coloring.values())
+        for ind_set in ind_sets:
+            color += 1
+            for v in ind_set:
+                if partial_coloring[v] == -1:
+                    partial_coloring[v] = color
+            graph.remove_nodes_from(ind_set)
 
     return coloring

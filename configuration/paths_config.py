@@ -58,3 +58,4 @@ def current_run_directory(seed=None):
 
 chromatic_numbers_path = '../resources/chromatic_numbers.txt'
 latex_result_path = base_directory + 'latex_result'
+algorithm_info_filename = "algorithm_info.txt"

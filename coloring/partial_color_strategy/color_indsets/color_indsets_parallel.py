@@ -1,7 +1,6 @@
 from multiprocessing import Process, Lock, Manager
 
 from color_indsets import *
-from coloring.algorithm_helper import *
 from configuration import algorithm_options_config
 
 
@@ -55,23 +54,11 @@ def color_by_independent_sets_parallel(graph, partial_coloring, partial_color_st
     logging.debug('Found independent sets (maybe identical) of sizes: ' + str([len(s) for s in best_ind_sets]))
 
 
-def update_coloring_and_graph(graph, partial_coloring, ind_sets):
-    color = max(partial_coloring.values())
-    for ind_set in ind_sets:
-        color += 1
-        for v in ind_set:
-            if partial_coloring[v] == -1:
-                partial_coloring[v] = color
-        graph.remove_nodes_from(ind_set)
-
-    logging.info('There are {0} vertices left to color'.format(graph.number_of_nodes()))
-
-
 def get_nr_of_sets_at_once(graph):
     """Determines maximal number of independent sets found for one vector coloring."""
 
-    if nx.classes.density(graph) > 0.5 and graph.number_of_nodes() > 100:
-        return max(1, int(math.floor((nx.classes.density(graph) + 0.5) * (graph.number_of_nodes() - 50) / 25)))
+    # if nx.classes.density(graph) > 0.5 and graph.number_of_nodes() > 100:
+    #     return max(1, int(math.floor((nx.classes.density(graph) + 0.5) * (graph.number_of_nodes() - 50) / 25)))
 
     return 1
 

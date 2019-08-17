@@ -8,6 +8,7 @@ from networkx import Graph
 from algorithm_helper import *
 from coloring.partial_color_strategy.color_and_fix import color_and_fix
 from coloring.partial_color_strategy.color_indsets import color_indsets
+from optimal_coloring import compute_optimal_coloring_dp
 
 
 class ColoringAlgorithm:
@@ -69,6 +70,9 @@ class PartialColoringAlgorithm:
             iteration += 1
             logging.info('\nStarting iteration nr {0} of main loop...'.format(iteration))
 
+            if working_graph.number_of_nodes() < 11:
+                compute_optimal_coloring_dp(working_graph, partial_coloring, update_graph_and_coloring=True)
+                break
             if working_graph.number_of_nodes() > 1 and working_graph.number_of_edges() > 0:
                 self._do_partial_color_nonempty_graph_with_edges(working_graph, partial_coloring)
             elif working_graph.number_of_nodes() == 1:

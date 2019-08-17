@@ -1,8 +1,10 @@
 """ Main file used to run experiments. """
 
+import networkx as nx
+
+from coloring.optimal_coloring import compute_optimal_coloring_dp
 from configuration import algorithm_instances_config
 from graph.graph_io import *
-from run.algorithm_runner import run_check_save_on_graphs
 
 graphs_directory = '../resources/graph_instances/DIMACS/'
 
@@ -17,6 +19,12 @@ algorithms = [
 if __name__ == '__main__':
     logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
-    graphs = read_graphs_from_directory(graphs_directory)
+    # graphs = read_graphs_from_directory(graphs_directory)
+    #
+    # run_check_save_on_graphs(graphs, algorithms)
+    import os
 
-    run_check_save_on_graphs(graphs, algorithms)
+    path = os.path.join(os.getcwd(), "resources/graph_instances/other/grotzsch.col")
+    graph = read_graph_from_file(path)
+    graph = nx.complete_graph(10)
+    coloring = compute_optimal_coloring_dp(graph)

@@ -59,31 +59,8 @@ def color_all_vertices_at_once_parallel(graph, partial_coloring, partial_color_s
     logging.info('Partial coloring found. There are {0} vertices left to color'.format(graph.number_of_nodes()))
 
 
-def update_coloring_and_graph(graph, colors, partition, strategy):
-    """Given best partition updates global partial_coloring (so that coloring is never illegal) and truncates graph graph
-
-    Args:
-        graph (nx.Graph): Graph that is being colored. The function removes some nodes from it so that only the part
-            that is not yet colored remains.
-        colors (dict): Global dictionary of colors of vertices of graph.
-        partition (dict): Coloring of vertices of graph given by hyperplane partition. Might be illegal.
-    """
-
-    nodes_to_del = find_nodes_to_delete(graph, partition, strategy=strategy)
-    nodes_to_color = {n for n in graph.nodes() if n not in nodes_to_del}
-
-    min_color = max(colors.values()) + 1
-    for v in nodes_to_color:
-        colors[v] = min_color + partition[v]
-
-    if not check_if_coloring_legal(graph, colors, partial=True):
-        raise Exception('Some partition resulted in illegal coloring.')
-
-    graph.remove_nodes_from(nodes_to_color)
-
-
 def better_partition_parallel(graph, part1, part2, independent_set_extraction_strategy):
-    """ part2 i current best & part1 is shmeme list"""
+    """ part2 i current best & part1 is shmem list"""
 
     best = part2
     for i in range(len(part1)):

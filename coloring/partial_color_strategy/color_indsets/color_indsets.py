@@ -1,10 +1,9 @@
 import logging
-import math
-
-import networkx as nx
 
 from coloring.partial_color_strategy.color_indsets.color_indsets_helper import *
 from coloring.partial_color_strategy.color_indsets.find_indsets_strategies.clustering import find_ind_sets_by_clustering
+from coloring.partial_color_strategy.color_indsets.find_indsets_strategies.dummy_vector_strategy import \
+    find_indsets_by_dummy_vector_strategy
 from coloring.partial_color_strategy.color_indsets.find_indsets_strategies.random_vector_projection import \
     find_indsets_by_random_vector_projection_strategy
 
@@ -13,6 +12,7 @@ from coloring.partial_color_strategy.color_indsets.find_indsets_strategies.rando
 find_independent_sets_strategy_map = {
     'random_vector_projection': find_indsets_by_random_vector_projection_strategy,
     'clustering': find_ind_sets_by_clustering,
+    'dummy_vector_strategy': find_indsets_by_dummy_vector_strategy,
     None: None,
 }
 
@@ -56,10 +56,10 @@ def update_coloring_and_graph(graph, partial_coloring, ind_sets):
 def get_nr_of_sets_at_once(graph):
     """Determines maximal number of independent sets found for one vector coloring."""
 
-    if nx.classes.density(graph) > 0.9 and graph.number_of_nodes() > 100:
-        return max(1, int(math.floor((nx.classes.density(graph) + 0.5) * (graph.number_of_nodes() - 50) / 25)))
-
-    if graph.number_of_nodes() > 130:
-        return 5
+    # if nx.classes.density(graph) > 0.9 and graph.number_of_nodes() > 100:
+    #     return max(1, int(math.floor((nx.classes.density(graph) + 0.5) * (graph.number_of_nodes() - 50) / 25)))
+    #
+    # if graph.number_of_nodes() > 130:
+    #     return 5
 
     return 1

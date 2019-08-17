@@ -1,7 +1,11 @@
 import json
 import os
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
+
+import numpy as np
+import seaborn as sns
+from matplotlib import pyplot as plt
 
 from configuration import paths_config
 from data_to_save import DataToSave
@@ -20,17 +24,41 @@ class RunResults:
         self.repetitions = repetitions
 
 
-def get_sorted_graph_names(results):
+def get_sorted_graph_names(results_directory):
     """ results is a dictionary (key is graph name) of lists of DataToSave objects. """
 
-    return [graph_name for graph_name in sorted(results.keys(), key=lambda graph_name: (
-        results[graph_name][0]['graph_family'],
-        int(results[graph_name][0]['graph_nr_of_vertices']),
-        float(results[graph_name][0]['graph_density'])))]
+    graph_directories = [d for d in listdir(results_directory) if isdir(join(results_directory, d))]
+    return graph_directories
 
 
 def get_sorted_algorithm_names(results):
-    return [result['algorithm_name'] for result in results[results.keys()[0]]]
+    return results.keys()
+
+
+def save_run_result_to_file(run_result, subdir):
+    """ Saves result of one algorithm on one graph."""
+
+    run_result_save_path, run_result_save_dir = \
+        get_run_result_save_path(run_result.graph, run_result.algorithm, subdir)
+    if not os.path.exists(run_result_save_dir):
+        os.makedirs(run_result_save_dir)
+
+    with open(run_result_save_path, 'w') as outfile:
+        data_to_save_for_graph = []
+        algorithm_data_to_save = DataToSave(run_result.graph, run_result)
+        data_to_save_for_graph.append(algorithm_data_to_save)
+
+        json.dump(
+            data_to_save_for_graph, outfile, ensure_ascii=False, indent=4, sort_keys=True,
+            default=lambda d: d.__dict__)
+
+
+def get_run_result_save_path(graph, algorithm, results_subdir):
+    graph_dirname = graph.name.replace(":", "")
+    directory = paths_config.results_directory() + "/" + results_subdir + "/" + graph_dirname + "/"
+    filename = algorithm.get_algorithm_name() + ".json"
+    filename = filename.replace(":", "")
+    return os.path.join(directory, filename), directory
 
 
 def save_runs_data_to_file(algorithms_results, subdir):
@@ -47,35 +75,47 @@ def save_graph_run_data_to_file(graph_results, graph, subdir):
         graph_results (list of RunResults): algorithm results for graph
     """
 
-    filename = graph.name + '.json'
-    directory = paths_config.results_directory() + "/" + subdir + "/"
+    graph_dirname = graph.name.replace(":", "")
+    directory = paths_config.results_directory() + "/" + subdir + "/" + graph_dirname + "/"
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    with open(directory + filename, 'w') as outfile:
-        data_to_save_for_graph = []
-
-        for algorithm_run_result in graph_results:
+    for algorithm_run_result in graph_results:
+        filename = algorithm_run_result.algorithm.get_algorithm_name() + ".json"
+        filename = filename.replace(":", "")
+        with open(directory + filename, 'w') as outfile:
+            data_to_save_for_graph = []
             algorithm_data_to_save = DataToSave(graph, algorithm_run_result)
             data_to_save_for_graph.append(algorithm_data_to_save)
 
-        json.dump(
-            data_to_save_for_graph, outfile, ensure_ascii=False, indent=4, sort_keys=True, default=lambda d: d.__dict__)
+            json.dump(
+                data_to_save_for_graph, outfile, ensure_ascii=False, indent=4, sort_keys=True,
+                default=lambda d: d.__dict__)
 
 
 def load_algorithm_run_data_from_seed(run_seed=None):
     directory = paths_config.results_directory(run_seed)
-    return load_algorithm_run_data_from_directory(directory)
+    return load_algorithm_run_data_from_results_directory(directory)
 
 
-def load_algorithm_run_data_from_directory(directory):
-    only_files = [f for f in listdir(directory) if isfile(join(directory, f))]
+def load_algorithm_run_data_from_results_directory(directory):
+    graph_directories = [d for d in listdir(directory) if isdir(join(directory, d))]
+    general_results = {}
+    for graph_directory in graph_directories:
+        full_graph_directory = join(directory, graph_directory)
+        graph_results = load_algorithm_run_data_from_graph_directory(full_graph_directory)
+        general_results[graph_directory] = graph_results
 
+    return general_results
+
+
+def load_algorithm_run_data_from_graph_directory(graph_directory):
+    only_files = [f for f in listdir(graph_directory) if isfile(join(graph_directory, f))]
     graph_results = {}
     for filename in only_files:
-        with open(directory + "/" + filename) as infile:
-            graph_algorithms_results = json.load(infile)  # each file a list of data for each algorithm (not RunResults)
-            graph_results[os.path.splitext(filename)[0]] = graph_algorithms_results
+        with open(join(graph_directory, filename)) as infile:
+            graph_algorithm_results = json.load(infile)  # a list of graph x algorithm results (usually has length 1)
+            graph_results[os.path.splitext(filename)[0]] = graph_algorithm_results
 
     return graph_results
 
@@ -108,3 +148,23 @@ def read_chromatic_numbers_file():
                     chromatic_numbers[values[0]] = '[' + values[chi_lb_ind] + ';' + values[chi_ub_ind] + ']'
 
     return chromatic_numbers
+
+
+def draw_distributions(dummy_matrix_coloring, beta=1.0):
+    draw_dummy_dot_products(dummy_matrix_coloring, beta)
+
+    plt.legend()
+    plt.show()
+
+
+def draw_dummy_dot_products(dummy_matrix_coloring, beta_factor):
+    n = dummy_matrix_coloring.shape[0]
+    dummy_dot_products = dummy_matrix_coloring[n - 1][0:n - 1]
+
+    sns.set(color_codes=True)
+    sns.distplot(
+        dummy_dot_products,
+        label='beta: {0}\nmin: {1:.3f}\nmean: {2:.3f}\nvar: {3:.3f}'.format(
+            beta_factor, np.min(dummy_dot_products), np.mean(dummy_dot_products), np.var(dummy_dot_products)),
+        rug=True,
+        norm_hist=True)

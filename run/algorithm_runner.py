@@ -8,7 +8,21 @@ from timeit import default_timer as timer
 from coloring.algorithm import *
 from configuration import run_config
 from graph.graph_io import *
+from result_processing import result_io
 from result_processing.result_processing import *
+
+
+def run_check_save_on_all_subdirectories(algorithms, directory):
+    create_algorithms_info_file(algorithms, directory)
+    for subdir in result_io.all_subdirs_of(directory):
+        run_check_save_on_directory(algorithms, subdir)
+
+
+def create_algorithms_info_file(algorithms, directory):
+    path = os.path.join(paths_config.results_directory(), paths_config.algorithm_info_filename)
+    with open(path, 'w') as f:
+        for algorithm in algorithms:
+            f.write(algorithm.get_algorithm_name() + "\n")
 
 
 def run_check_save_on_directory(algorithms, directory):
@@ -19,15 +33,58 @@ def run_check_save_on_directory(algorithms, directory):
 
 
 def run_check_save_on_graphs(graphs, algorithms, results_subdir):
-    algorithms_results = run(graphs, algorithms)
+    logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
-    for graph in algorithms_results:
-        for run_results in algorithms_results[graph]:
-            if not check_if_coloring_legal(graph, run_results.best_coloring):
-                raise Exception(
-                    'Coloring obtained by {0} on {1} is not legal'.format(run_results.algorithm.name, graph.name))
+    for graph_counter, graph in enumerate(graphs):
+        for algorithm_counter, algorithm in enumerate(algorithms):
+            logging.info("\nComputing graph: {0} ({2}/{3}), algorithm: {1} ({4}/{5}) ...\n".format(graph.name,
+                                                                                                   algorithm.get_algorithm_name(),
+                                                                                                   graph_counter + 1,
+                                                                                                   len(graphs),
+                                                                                                   algorithm_counter + 1,
+                                                                                                   len(algorithms)))
 
-    save_runs_data_to_file(algorithms_results, results_subdir)
+            # todo check if result already exists
+            if not result_already_exists(graph, algorithm, results_subdir) or run_config.overwrite_results:
+                run_result = run_algorithm_on_graph(graph, algorithm)
+
+                if not check_if_coloring_legal(graph, run_result.best_coloring):
+                    raise Exception(
+                        'Coloring obtained by {0} on {1} is not legal'.format(run_result.algorithm.name, graph.name))
+
+                save_run_result_to_file(run_result, results_subdir)
+
+
+def result_already_exists(graph, algorithm, results_subdir):
+    path, _ = get_run_result_save_path(graph, algorithm, results_subdir)
+    return os.path.exists(path)
+
+
+def run_algorithm_on_graph(graph, algorithm):
+    times = []
+    graph_colorings = []
+
+    for _ in range(run_config.repetitions_per_graph):
+        start = timer()
+        coloring = algorithm.color_graph(graph)
+        end = timer()
+        times.append(end - start)
+        graph_colorings.append(coloring)
+
+    run_results = RunResults(
+        graph=graph,
+        algorithm=algorithm,
+        average_time=np.mean(times),
+        best_coloring=min(graph_colorings, key=lambda coloring: len(set(coloring.values()))),
+        average_nr_of_colors=np.mean([len(set(coloring.values())) for coloring in graph_colorings]),
+        repetitions=run_config.repetitions_per_graph
+    )
+
+    logging.info("Done graph: {0}, algorithm: {1}, colors: {2}, time: {3:6.2f} s ...\n".format(
+        graph.name, algorithm.get_algorithm_name(), len(set(run_results.best_coloring.values())),
+        run_results.average_time))
+
+    return run_results
 
 
 def run(graphs, algorithms):
