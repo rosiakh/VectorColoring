@@ -16,6 +16,7 @@ def find_ind_sets_by_clustering(graph, find_indsets_strategy_params, nr_of_sets=
     opt_t = 1 + 1 / (k - 1) - 0.001 if k > 1.5 else 2.0  # Should guarantee each cluster can be colored with one color
 
     best_ind_sets = None
+    best_almost_ind_sets = None
     for t in np.linspace(
             opt_t * find_indsets_strategy_params['cluster_size_lower_factor'],
             opt_t * find_indsets_strategy_params['cluster_size_upper_factor'],
@@ -32,6 +33,7 @@ def find_ind_sets_by_clustering(graph, find_indsets_strategy_params, nr_of_sets=
         sorted_cluster_sizes = sorted(cluster_sizes.items(), key=lambda (key, value): value, reverse=True)
 
         ind_sets = []
+        almost_ind_sets = []
         for i in range(min(nr_of_sets, len(sorted_cluster_sizes))):
             cluster = sorted_cluster_sizes[i][0]
 
@@ -40,13 +42,15 @@ def find_ind_sets_by_clustering(graph, find_indsets_strategy_params, nr_of_sets=
             ind_set = extract_independent_subset(
                 vertices, edges, strategy=find_indsets_strategy_params['independent_set_extraction_strategy'])
             ind_sets.append(ind_set)
+            almost_ind_sets.append(vertices)
 
         if is_better_ind_sets(graph, ind_sets, best_ind_sets):
             best_ind_sets = ind_sets
+            best_almost_ind_sets = almost_ind_sets
 
     if shmem_ind_sets is not None and lock is not None:
         lock.acquire()
         shmem_ind_sets.append(best_ind_sets)
         lock.release()
 
-    return best_ind_sets
+    return best_ind_sets, best_almost_ind_sets

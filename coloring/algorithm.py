@@ -8,6 +8,7 @@ from networkx import Graph
 from algorithm_helper import *
 from coloring.partial_color_strategy.color_and_fix import color_and_fix
 from coloring.partial_color_strategy.color_indsets import color_indsets
+from configuration.algorithm_options_config import optimal_coloring_nodes_threshold
 from optimal_coloring import compute_optimal_coloring_dp
 
 
@@ -58,9 +59,6 @@ class PartialColoringAlgorithm:
 
         partial_coloring = {v: -1 for v in graph.nodes()}
 
-        logging.info('Starting color_graph procedure on a graph with {0} vertices and {1} edges...'.format(
-            graph.number_of_nodes(), graph.number_of_edges()))
-
         max_iterations = graph.number_of_nodes() * 2  # is it a good boundary?
         working_graph = graph.copy()
 
@@ -68,9 +66,11 @@ class PartialColoringAlgorithm:
         while (working_graph.number_of_nodes() >= 0 and -1 in set(
                 partial_coloring.values())) and iteration < max_iterations:
             iteration += 1
-            logging.info('\nStarting iteration nr {0} of main loop...'.format(iteration))
+            logging.info(
+                '\nIteration nr {0} of main loop on graph with {1} nodes and {2} edges...'.format(
+                    iteration, working_graph.number_of_nodes(), working_graph.number_of_edges()))
 
-            if working_graph.number_of_nodes() < 11:
+            if working_graph.number_of_nodes() < optimal_coloring_nodes_threshold:
                 compute_optimal_coloring_dp(working_graph, partial_coloring, update_graph_and_coloring=True)
                 break
             if working_graph.number_of_nodes() > 1 and working_graph.number_of_edges() > 0:

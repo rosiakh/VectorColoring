@@ -27,7 +27,7 @@ def create_algorithms_info_file(algorithms, directory):
 
 def run_check_save_on_directory(algorithms, directory):
     graphs = read_graphs_from_directory(directory)
-    split_subdir = directory.split("/")
+    split_subdir = directory.split(os.sep)
     results_subdir = split_subdir[len(split_subdir) - 1]
     return run_check_save_on_graphs(graphs, algorithms, results_subdir)
 
@@ -35,24 +35,36 @@ def run_check_save_on_directory(algorithms, directory):
 def run_check_save_on_graphs(graphs, algorithms, results_subdir):
     logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
-    for graph_counter, graph in enumerate(graphs):
+    sorted_and_pruned_graphs = sort_and_prune_graphs(graphs)
+    for graph_counter, graph in enumerate(sorted_and_pruned_graphs):
         for algorithm_counter, algorithm in enumerate(algorithms):
-            logging.info("\nComputing graph: {0} ({2}/{3}), algorithm: {1} ({4}/{5}) ...\n".format(graph.name,
+            logging.info("\nSTARTING ON GRAPH: {0} ({2}/{3}), ALGORITHM: {1} ({4}/{5}) ...".format(graph.name,
                                                                                                    algorithm.get_algorithm_name(),
                                                                                                    graph_counter + 1,
-                                                                                                   len(graphs),
+                                                                                                   len(
+                                                                                                       sorted_and_pruned_graphs),
                                                                                                    algorithm_counter + 1,
                                                                                                    len(algorithms)))
 
             # todo check if result already exists
             if not result_already_exists(graph, algorithm, results_subdir) or run_config.overwrite_results:
-                run_result = run_algorithm_on_graph(graph, algorithm)
+                try:
+                    run_result = run_algorithm_on_graph(graph, algorithm)
+                except Exception, e:
+                    print 'Error has occurred during coloring: ' + str(e)
+                    continue
 
                 if not check_if_coloring_legal(graph, run_result.best_coloring):
                     raise Exception(
                         'Coloring obtained by {0} on {1} is not legal'.format(run_result.algorithm.name, graph.name))
 
                 save_run_result_to_file(run_result, results_subdir)
+
+
+def sort_and_prune_graphs(graphs):
+    graphs.sort(key=lambda g: (g.number_of_nodes() + g.number_of_edges()) ** 2)
+    pruned_graphs = [g for g in graphs if (g.number_of_nodes() + g.number_of_edges()) ** 2 < (350 + 15000) ** 2]
+    return pruned_graphs
 
 
 def result_already_exists(graph, algorithm, results_subdir):

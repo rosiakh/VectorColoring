@@ -25,32 +25,39 @@ def color_by_independent_sets(graph, partial_coloring, partial_color_strategy_pa
     # TODO: strategy of determining how many sets to get at once from find_ind_set_strategy
 
     best_ind_sets = None
+    best_almost_indsets = None
     nr_of_trials = 1 if partial_color_strategy_params['deterministic'] else \
         partial_color_strategy_params['nr_of_times_restarting_ind_set_strategy']
 
     for _ in range(nr_of_trials):
-        ind_sets = find_independent_sets_strategy_map[partial_color_strategy_params['find_independent_sets_strategy']](
+        ind_sets, almost_indsets = find_independent_sets_strategy_map[
+            partial_color_strategy_params['find_independent_sets_strategy']](
             graph,
             partial_color_strategy_params['find_indsets_strategy_params'],
             nr_of_sets=get_nr_of_sets_at_once(graph))  # Returns list of sets
 
         if is_better_ind_sets(graph, ind_sets, best_ind_sets):
             best_ind_sets = ind_sets
+            best_almost_indsets = almost_indsets
 
-    update_coloring_and_graph(graph, partial_coloring, best_ind_sets)
-    logging.debug('Found independent sets (maybe identical) of sizes: ' + str([len(s) for s in best_ind_sets]))
+    ratios = [str(len(x)) + "/" + str(len(y)) for x, y in zip(best_ind_sets, best_almost_indsets)]
+    logging.info('Found independent sets (maybe identical) of sizes: ' + str(ratios))
+    nr_of_colored_vertices = update_coloring_and_graph(graph, partial_coloring, best_ind_sets)
+    logging.info('Nr of actually colored vertices: ' + str(nr_of_colored_vertices))
 
 
 def update_coloring_and_graph(graph, partial_coloring, ind_sets):
+    nr_of_colored_vertices = 0
     color = max(partial_coloring.values())
     for ind_set in ind_sets:
         color += 1
         for v in ind_set:
             if partial_coloring[v] == -1:
                 partial_coloring[v] = color
+                nr_of_colored_vertices += 1
         graph.remove_nodes_from(ind_set)
 
-    logging.info('There are {0} vertices left to color'.format(graph.number_of_nodes()))
+    return nr_of_colored_vertices
 
 
 def get_nr_of_sets_at_once(graph):

@@ -25,7 +25,6 @@ class RunResults:
 
 
 def get_sorted_graph_names(results_directory):
-    """ results is a dictionary (key is graph name) of lists of DataToSave objects. """
 
     graph_directories = [d for d in listdir(results_directory) if isdir(join(results_directory, d))]
     return graph_directories

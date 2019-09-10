@@ -1,6 +1,5 @@
-from coloring.algorithm_helper import *
-from coloring.partial_color_strategy.color_indsets.color_indsets_helper import *
 from solver.solver import compute_dummy_vector_coloring
+from vector_projection_helper import *
 
 
 def find_indsets_by_dummy_vector_strategy(graph, find_indsets_strategy_params, nr_of_sets,
@@ -12,57 +11,46 @@ def find_indsets_by_dummy_vector_strategy(graph, find_indsets_strategy_params, n
 
     dummy_vector_coloring = compute_dummy_vector_coloring(
         graph, find_indsets_strategy_params['beta_factor_strategy'],
-        find_indsets_strategy_params['is_alpha_constrained'])
+        find_indsets_strategy_params['alpha_upper_bound'])
 
     best_ind_sets = []
-
+    best_almost_ind_sets = []
     if find_indsets_strategy_params['find_almost_indsets_strategy'] == "projection":
-        ind_sets = find_indsets_by_dummy_vector_projection(graph, find_indsets_strategy_params,
-                                                           dummy_vector_coloring, nr_of_sets)
+        ind_sets, almost_indsets = find_indsets_by_dummy_vector_projection(graph, find_indsets_strategy_params,
+                                                                           dummy_vector_coloring, nr_of_sets)
     elif find_indsets_strategy_params['find_almost_indsets_strategy'] == "greedy":
-        ind_sets = find_indsets_by_dummy_vector_greedy(graph, find_indsets_strategy_params,
-                                                       dummy_vector_coloring, nr_of_sets)
+        ind_sets, almost_indsets = find_indsets_by_dummy_vector_greedy(graph, find_indsets_strategy_params,
+                                                                       dummy_vector_coloring, nr_of_sets)
     else:
         raise Exception('Unknown dummy vector projection find almost indsets strategy')
 
     if is_better_ind_sets(graph, ind_sets, best_ind_sets):
         best_ind_sets = ind_sets
+        best_almost_ind_sets = almost_indsets
 
     if shmem_ind_sets is not None and lock is not None:
         lock.acquire()
         shmem_ind_sets.append(best_ind_sets)
         lock.release()
 
-    return best_ind_sets
+    return best_ind_sets, best_almost_ind_sets
 
 
 def find_indsets_by_dummy_vector_projection(graph, find_indsets_strategy_params, dummy_vector_coloring, nr_of_sets):
-    inv_vertices_mapping = {i: v for i, v in enumerate(sorted(graph.nodes()))}
+    c_params = find_indsets_strategy_params['c_adaptation_strategy_params']
     n = graph.number_of_nodes()
-    c_opt = compute_dummy_c_opt(graph, dummy_vector_coloring)
+    c_opt = compute_dummy_c_opt(graph, dummy_vector_coloring, c_params['initial_c_percentile'])
 
     ind_sets = []
+    almost_ind_sets = []
     r = -dummy_vector_coloring[n]
-    x = np.dot(dummy_vector_coloring, r)
-    best_ind_set = []
-    for c in np.linspace(
-            c_opt * find_indsets_strategy_params['c_param_lower_factor'],
-            c_opt * find_indsets_strategy_params['c_param_upper_factor'],
-            num=find_indsets_strategy_params['nr_of_c_params_tried_per_random_vector']):
-        current_subgraph_nodes = {inv_vertices_mapping[i] for i, v in enumerate(x) if v >= c}
-        current_subgraph_edges = {(i, j) for i, j in graph.edges() if
-                                  (i in current_subgraph_nodes and j in current_subgraph_nodes)}
-
-        ind_set = [extract_independent_subset(
-            current_subgraph_nodes, current_subgraph_edges,
-            strategy=find_indsets_strategy_params['independent_set_extraction_strategy'])]
-
-        if is_better_ind_sets(graph, ind_set, best_ind_set):
-            best_ind_set = ind_set
+    best_ind_set, best_almost_ind_set = obtain_single_ind_set_by_projection(
+        dummy_vector_coloring, r, find_indsets_strategy_params, c_opt, graph)
 
     ind_sets.extend(best_ind_set)
+    almost_ind_sets.extend(best_almost_ind_set)
 
-    return ind_sets
+    return ind_sets, almost_ind_sets
 
 
 def find_indsets_by_dummy_vector_greedy(graph, find_indsets_strategy_params, dummy_vector_coloring, nr_of_sets):
@@ -71,27 +59,45 @@ def find_indsets_by_dummy_vector_greedy(graph, find_indsets_strategy_params, dum
     r = -dummy_vector_coloring[n]
 
     from scipy.spatial.distance import cdist
-    distances = cdist([r], dummy_vector_coloring[0:n], 'cosine')
+    distances = cdist([-r], dummy_vector_coloring[0:n], 'cosine')
 
     ind_set = []
     sorted_distances = np.argsort(distances)[0]
-    for i in sorted_distances:
+    i = 0
+    has_edge_flag = False
+    while i < len(sorted_distances) and is_continue_greedy(has_edge_flag, find_indsets_strategy_params, ind_set,
+                                                           sorted_distances, i):
+        w = sorted_distances[i]
         has_edge_flag = False
         for v in ind_set:
-            if has_edge_between_ith_and_jth(graph, i, v):
+            if has_edge_between_ith_and_jth(graph, w, v):
                 has_edge_flag = True
                 break
         if not has_edge_flag:
-            ind_set.append(i)
+            ind_set.append(w)
+        i += 1
 
-    ind_set_vertices = [inv_vertices_mapping[i] for i in ind_set]
-    return [ind_set_vertices]
+    ind_set_vertices = [inv_vertices_mapping[j] for j in ind_set]
+    return [ind_set_vertices], [[v for j, v in enumerate(sorted_distances) if j < i]]
 
 
-def compute_dummy_c_opt(graph, dummy_vector_coloring):
+def is_continue_greedy(has_edge_flag, find_indsets_strategy_params, ind_set, sorted_distances, i):
+    if find_indsets_strategy_params['greedy_continue_strategy'] == 'all-vertices':
+        return True
+    elif find_indsets_strategy_params['greedy_continue_strategy'] == 'first-edge':
+        return not has_edge_flag
+    elif find_indsets_strategy_params['greedy_continue_strategy'] == 'ratio':
+        greedy_params = find_indsets_strategy_params['greedy_continue_strategy_params']
+        if i < greedy_params['lower_bound_nr_of_nodes']:
+            return True
+        ratio = float(len(ind_set)) / float(i)
+        return ratio > greedy_params['ratio_upper_bound']
+
+
+def compute_dummy_c_opt(graph, dummy_vector_coloring, percentile):
     dummy_matrix_coloring = np.dot(dummy_vector_coloring, np.transpose(dummy_vector_coloring))
     n = dummy_matrix_coloring.shape[0]
     dummy_dot_products = dummy_matrix_coloring[n - 1][0:n - 1]
 
     # draw_distributions(dummy_matrix_coloring, 5.0)
-    return np.percentile(dummy_dot_products, 50)
+    return -np.percentile(dummy_dot_products, percentile)

@@ -32,7 +32,7 @@ def color_all_vertices_at_once(graph, partial_coloring, partial_color_strategy_p
             of graph using some hyperplane partition strategy
     """
 
-    logging.info('Looking for partial coloring using all_vertices_at_once strategy...')
+    logging.info('Looking for partial coloring using color and fix strategy...')
 
     best_partition = None
     nr_of_trials = 1 if partial_color_strategy_params['deterministic'] else \
@@ -46,10 +46,10 @@ def color_all_vertices_at_once(graph, partial_coloring, partial_color_strategy_p
                                partial_color_strategy_params['independent_set_extraction_strategy']):
             best_partition = partition
 
-    update_coloring_and_graph(
+    nr_of_nodes_colored = update_coloring_and_graph(
         graph, partial_coloring, best_partition, partial_color_strategy_params['independent_set_extraction_strategy'])
 
-    logging.info('Partial coloring found. There are {0} vertices left to color'.format(graph.number_of_nodes()))
+    logging.info("Colored {0} nodes using {1} colors".format(nr_of_nodes_colored, len(set(best_partition.values()))))
 
 
 def update_coloring_and_graph(graph, partial_coloring, partition, strategy):
@@ -60,6 +60,8 @@ def update_coloring_and_graph(graph, partial_coloring, partition, strategy):
             that is not yet colored remains.
         partial_coloring (dict): Global dictionary of colors of vertices of graph.
         partition (dict): Coloring of vertices of graph given by hyperplane partition. Might be illegal.
+
+        :return number of actually colored nodes
     """
 
     nodes_to_del = find_nodes_to_delete(graph, partition, strategy)
@@ -72,3 +74,5 @@ def update_coloring_and_graph(graph, partial_coloring, partition, strategy):
         raise Exception('Some partition resulted in illegal coloring.')
 
     graph.remove_nodes_from(nodes_to_color)
+
+    return len(nodes_to_color)

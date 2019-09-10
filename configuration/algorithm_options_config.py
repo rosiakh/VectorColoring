@@ -4,10 +4,12 @@
 sdp_strong_threshold = -1  # for smaller graphs solver always solves strong sdp
 use_previous_sdp_result = False  # if set to True other algorithms may use sdp results of other algorithms in the same run
 solver_name = 'mosek'  # other possibilities: cvxopt; TODO: maybe try picos as well
-solver_verbose = True
-general_verbosity = True
+solver_verbose = False
+solver_output = 'stdout'
+general_verbosity = False
 parallel = False
 nr_of_parallel_jobs = 1
+optimal_coloring_nodes_threshold = 14
 
 # this config contains parameters related to algorithm's data;
 # for config related to behavior see 'partition_strategy_params'

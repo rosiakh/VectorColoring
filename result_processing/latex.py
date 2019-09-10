@@ -22,13 +22,16 @@ def create_and_save_latex_tables(result_seed=None):
             is_float_property=False,
             is_bold_min=True,
             algorithm_names=algorithm_names)
+        latex_text = latex_text.replace("\_0 ", " ")
+        latex_text += "\\begin{landscape}\\n"
         latex_text += create_latex_table_string(
             results_directory=results_subdir,
-            table_caption=os.path.basename(os.path.normpath(results_subdir)) + " - Time of computation",
+            table_caption=os.path.basename(os.path.normpath(results_subdir)) + " - Time of computation [s]",
             data_to_save_property="avg_time",
             is_float_property=True,
             is_bold_min=True,
             algorithm_names=algorithm_names)
+        latex_text += "\\end{landscape}\n"
 
         with open(paths_config.latex_result_path, 'w') as outfile:
             outfile.write(latex_text)
@@ -54,7 +57,7 @@ def create_latex_table_string(results_directory, table_caption, data_to_save_pro
 def create_legend(algorithm_names):
     latex_text = "\\begin{itemize}\n"
     for i, algorithm_name in enumerate(algorithm_names):
-        latex_text += "\\item A" + str(i) + " = " + algorithm_name + "\n"
+        latex_text += "\\item " + get_algorithm_letter(algorithm_name) + str(i) + " = " + algorithm_name + "\n"
     latex_text += "\\end{itemize}\n"
 
     return latex_text
@@ -70,7 +73,7 @@ def get_algorithm_names(results_directory):
 
 
 def create_latex_table_row(graph_name, sorted_algorithm_names, results, data_to_save_property, is_float_property,
-                           is_bold_min):
+                           is_bold_min, is_round_float=True):
     latex_row = "{0} & {1} & {2:.2f}".format(
         results[results.keys()[0]][0]['graph_family'],
         results[results.keys()[0]][0]['graph_nr_of_vertices'],
@@ -81,7 +84,10 @@ def create_latex_table_row(graph_name, sorted_algorithm_names, results, data_to_
         if algorithm_name in results.keys() and len(results[algorithm_name]) > 0:
             algorithm_data_to_save = results[algorithm_name][0]
             if is_float_property:
-                latex_row += " & {0:.2f}".format(algorithm_data_to_save[data_to_save_property])
+                if is_round_float:
+                    latex_row += " & {0}".format(int(round(algorithm_data_to_save[data_to_save_property])))
+                else:
+                    latex_row += " & {0:.2f}".format(algorithm_data_to_save[data_to_save_property])
             else:
                 latex_row += " & {0}".format(algorithm_data_to_save[data_to_save_property])
         else:
@@ -98,10 +104,21 @@ def create_latex_table_top(sorted_algorithm_names, caption):
     caption = "\\caption{" + caption + "}\\\\\n\\hline\n"
     header = "Graph & Vertices & Density"
     for i, algorithm in enumerate(sorted_algorithm_names):
-        header += " & A" + str(i)
+        header += " & " + get_algorithm_letter(algorithm) + str(i)
     header += "\\\\\n\\hline\n"
 
     return longtable + caption + header
+
+
+def get_algorithm_letter(algorithm_name):
+    alg_letter = "A"
+    if "dummy" in algorithm_name:
+        alg_letter = "D"
+    elif "random" in algorithm_name:
+        alg_letter = "R"
+    elif "Greedy" in algorithm_name:
+        alg_letter = "G"
+    return alg_letter
 
 
 def create_latex_table_bottom():
