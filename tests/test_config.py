@@ -21,17 +21,18 @@ test_graphs_directory = '../resources/test_instances/'
 # ]
 
 run_algorithms = [
+    algorithm_instances_config.algorithms_configured['IndSets strategy -clustering'],
+    algorithm_instances_config.algorithms_configured['Color and fix -clustering'],
+    algorithm_instances_config.algorithms_configured['Color and fix -random hyperplanes'],
     algorithm_instances_config.algorithms_configured[
-        "IndSets strategy -dummy vector coloring -greedy -all-vertices ver2"],
-    algorithm_instances_config.algorithms_configured[
-        'IndSets strategy -random vector projection -best-many-trials_25x25'],
+        'IndSets strategy -random vector projection -best-many-trials_25x25'],  # TEN BYL WYBRANY JAKO DRUGI
     algorithm_instances_config.algorithms_configured['IndSets strategy -random vector projection -linspace'],
     algorithm_instances_config.algorithms_configured['IndSets strategy -random vector projection -ratio -low'],
     algorithm_instances_config.algorithms_configured['IndSets strategy -random vector projection -ratio -high'],
     algorithm_instances_config.algorithms_configured[
         'IndSets strategy -dummy vector coloring -projection -linspace -1_c_param_per_vector'],
     algorithm_instances_config.algorithms_configured[
-        'IndSets strategy -dummy vector coloring -projection -linspace -10_c_param_per_vector'],
+        'IndSets strategy -dummy vector coloring -projection -linspace -10_c_param_per_vector'],  #TEN BYL WYBRANY
     algorithm_instances_config.algorithms_configured[
         'IndSets strategy -dummy vector coloring -projection -ratio -fast'],
     algorithm_instances_config.algorithms_configured[

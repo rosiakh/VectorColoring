@@ -5,6 +5,12 @@ no_result_char = "--"
 
 
 def create_and_save_latex_tables(result_seed=None):
+    """
+
+    :param result_seed:
+    :return:
+    """
+
     if result_seed is None:
         result_seed = find_newest_result_seed()
 
@@ -39,6 +45,17 @@ def create_and_save_latex_tables(result_seed=None):
 
 def create_latex_table_string(results_directory, table_caption, data_to_save_property, is_float_property, is_bold_min,
                               algorithm_names):
+    """
+
+    :param results_directory:
+    :param table_caption:
+    :param data_to_save_property:
+    :param is_float_property:
+    :param is_bold_min:
+    :param algorithm_names:
+    :return:
+    """
+
     sorted_graph_names = get_sorted_graph_names(results_directory)
 
     latex_text = ""
@@ -55,6 +72,12 @@ def create_latex_table_string(results_directory, table_caption, data_to_save_pro
 
 
 def create_legend(algorithm_names):
+    """
+
+    :param algorithm_names:
+    :return:
+    """
+
     latex_text = "\\begin{itemize}\n"
     for i, algorithm_name in enumerate(algorithm_names):
         latex_text += "\\item " + get_algorithm_letter(algorithm_name) + str(i) + " = " + algorithm_name + "\n"
@@ -64,6 +87,12 @@ def create_legend(algorithm_names):
 
 
 def get_algorithm_names(results_directory):
+    """
+
+    :param results_directory:
+    :return:
+    """
+
     algorithm_names = []
     with open(join(results_directory, paths_config.algorithm_info_filename), 'r') as algorithm_info_file:
         for algorithm_name in algorithm_info_file:
@@ -74,6 +103,18 @@ def get_algorithm_names(results_directory):
 
 def create_latex_table_row(graph_name, sorted_algorithm_names, results, data_to_save_property, is_float_property,
                            is_bold_min, is_round_float=True):
+    """
+
+    :param graph_name: unused
+    :param sorted_algorithm_names:
+    :param results:
+    :param data_to_save_property:
+    :param is_float_property:
+    :param is_bold_min:
+    :param is_round_float:
+    :return:
+    """
+
     latex_row = "{0} & {1} & {2:.2f}".format(
         results[results.keys()[0]][0]['graph_family'],
         results[results.keys()[0]][0]['graph_nr_of_vertices'],
@@ -100,6 +141,17 @@ def create_latex_table_row(graph_name, sorted_algorithm_names, results, data_to_
 
 
 def create_latex_table_top(sorted_algorithm_names, caption):
+    """Create latex table top part of latex string
+        \begin{longtable}[c]{|l|c|c|...|c|}
+        \caption{some caption}
+        \hline
+        #TODO finish this docstring
+
+    :param sorted_algorithm_names:
+    :param caption:
+    :return: latex table top part string
+    """
+
     longtable = "\\begin{longtable}[c]{|l|c|c|" + "c|" * len(sorted_algorithm_names) + "}\n"
     caption = "\\caption{" + caption + "}\\\\\n\\hline\n"
     header = "Graph & Vertices & Density"
@@ -111,6 +163,16 @@ def create_latex_table_top(sorted_algorithm_names, caption):
 
 
 def get_algorithm_letter(algorithm_name):
+    """Get one letter abbreviation of coloring algorithm type based on its name
+        D - dummy vector coloring
+        R - random vector coloring
+        G - greedy coloring
+        A - all other
+
+    :param algorithm_name: name of an algorithm
+    :return: one letter abbreviation of algorithm type
+    """
+
     alg_letter = "A"
     if "dummy" in algorithm_name:
         alg_letter = "D"
@@ -122,10 +184,26 @@ def get_algorithm_letter(algorithm_name):
 
 
 def create_latex_table_bottom():
+    """Create
+        \end{longtable}
+        part of latex table string
+
+    :return: bottom of latex table
+    """
+
     return "\\end{longtable}\n"
 
 
 def bold_extreme_value_latex_row(latex_row, from_column, to_column, is_bold_min):
+    """
+
+    :param latex_row:
+    :param from_column:
+    :param to_column:
+    :param is_bold_min:
+    :return:
+    """
+
     latex_row_values_with_special_chars = latex_row.split(' & ')[from_column:to_column]
     latex_row_values = [v for v in latex_row_values_with_special_chars if v != no_result_char]
     latex_row_values = map(lambda s: float(s), latex_row_values)

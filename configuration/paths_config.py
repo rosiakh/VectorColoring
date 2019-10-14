@@ -1,4 +1,5 @@
-""" Configuration of paths used in the program. """
+"""Configuration of paths used in the program."""
+
 import os
 
 run_seed = ''  # A String used to differentiate between runs of algorithm, set at run's start.

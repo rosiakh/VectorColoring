@@ -30,6 +30,7 @@ def choose_graph_command():
     logging.info("You've chosen a graph: {0}".format(tk_path.get()))
 
 
+# TODO: probably those two global variables can be removed
 graph = None
 coloring = None
 
@@ -47,7 +48,7 @@ def draw_graph_command():
     if algorithm_results is not None:
         graph = algorithm_results.keys()[0]
         coloring = algorithm_results[graph][0].best_coloring
-        graph_io.draw_graph(graph=graph, colors=coloring, toConsole=False, toImage=True, filename=graph.name)
+        graph_io.draw_graph(graph=graph, coloring=coloring, to_console=False, to_image=True, filename=graph.name)
 
 
 button_width = 20

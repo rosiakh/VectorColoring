@@ -1,5 +1,4 @@
-"""
-Configuration of algorithm instances to be used in the program.
+"""Configuration of algorithm instances to be used in the program.
 
 Available options for algorithm creation:
 

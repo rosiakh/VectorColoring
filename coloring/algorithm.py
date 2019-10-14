@@ -3,8 +3,6 @@
 
 import logging
 
-from networkx import Graph
-
 from algorithm_helper import *
 from coloring.partial_color_strategy.color_and_fix import color_and_fix
 from coloring.partial_color_strategy.color_indsets import color_indsets
@@ -15,11 +13,10 @@ from optimal_coloring import compute_optimal_coloring_dp
 class ColoringAlgorithm:
 
     def __init__(self, color_func, algorithm_name):
-        """Creates algorithm coloring graphs using color_func procedure.
+        """Creates algorithm that colors graphs using color_func procedure.
 
-        Args:
-            color_func (nx.Graph->dict): Function that takes nx.Graph and returns vertex: color dictionary
-            algorithm_name (str): Optional algorithm name.
+        :param color_func (nx.Graph->dict): Function that takes nx.Graph and returns vertex: color dictionary
+        :param algorithm_name (str): Optional algorithm name.
         """
 
         self._color_graph = color_func
@@ -29,11 +26,21 @@ class ColoringAlgorithm:
             self._name = str(self.color_graph)
 
     def color_graph(self, graph, partial_coloring=None):
-        """Color graph using self._color_graph and ignoring 'partial_coloring' and 'verbose' parameters"""
+        """Color graph using self._color_graph and ignoring 'partial_coloring' and 'verbose' parameters
+
+        :param graph: (nx.Graph) a graph
+        :param partial_coloring: (dict) optional partial coloring of graph
+        :return (dict) legal coloring of graph
+        """
 
         return self._color_graph(graph)
 
     def get_algorithm_name(self):
+        """Return the name of the algorithm.
+
+        :return: name of the algorithm
+        """
+
         return self._name
 
 
@@ -47,11 +54,9 @@ class PartialColoringAlgorithm:
     def color_graph(self, graph):
         """Colors graph using vector coloring algorithm.
 
-        Args:
-            graph (Graph): Graph to be colored.
-
-        Returns:
-            dict: Global vertex-color dictionary indexed from 0 to graph.number_of_nodes()-1.
+        :param graph: (nx.Graph) Graph to be colored.
+        :return (dict) Global vertex-color dictionary, indexed from 0 to graph.number_of_nodes()-1, that constitutes
+            a legal coloring of graph
         """
 
         if graph.number_of_selfloops() > 0:
@@ -76,7 +81,7 @@ class PartialColoringAlgorithm:
             if working_graph.number_of_nodes() > 1 and working_graph.number_of_edges() > 0:
                 self._do_partial_color_nonempty_graph_with_edges(working_graph, partial_coloring)
             elif working_graph.number_of_nodes() == 1:
-                self._do_color_single_vertex(graph, list(working_graph.nodes)[0], partial_coloring)
+                self._do_color_single_vertex(working_graph, list(working_graph.nodes)[0], partial_coloring)
                 break
             elif working_graph.number_of_edges() == 0:
                 self._do_color_no_edges(working_graph, partial_coloring)
@@ -87,14 +92,17 @@ class PartialColoringAlgorithm:
         return partial_coloring
 
     def _do_partial_color_nonempty_graph_with_edges(self, graph, partial_coloring):
-        """ Tries to color at least one vertex of graph. Modifies the graph by deleting nodes that have been colored.
+        """Loops until it colors at least one vertex of graph. Modifies the graph by deleting nodes that
+            have been colored.
 
-        graph - get modified by coloring some of it's vertices
-        partial_coloring - dictionary with partial_coloring of vertices of graph - get updated
+        :param graph: get modified by coloring some of it's vertices
+        :param partial_coloring: dictionary with partial_coloring of vertices of graph - get updated
         """
 
         current_number_of_nodes = graph.number_of_nodes()
         while graph.number_of_nodes() == current_number_of_nodes:
+            # one strategy from partial_color_strategy_map
+            # (color_and_fix.color_all_vertices_at_once or color_indsets.color_by_independent_sets)
             self._partial_color_strategy(
                 graph=graph,
                 partial_coloring=partial_coloring,
@@ -102,26 +110,42 @@ class PartialColoringAlgorithm:
 
     @staticmethod
     def _do_color_single_vertex(graph, vertex, partial_coloring):
+        """Colors vertex with the lowest possible color.
+
+        :param graph: nx.Graph object
+        :param vertex: vertex of graph
+        :param partial_coloring: partial coloring of graph
+        """
+
         partial_coloring[vertex] = get_lowest_legal_color(graph, vertex, partial_coloring)
 
     @staticmethod
-    def _do_color_no_edges(working_graph, partial_coloring):
+    def _do_color_no_edges(graph, partial_coloring):
+        """Color graph that has no edges
+
+        :param graph: nx.Graph object that has no edges
+        :param partial_coloring: partial coloring of graph
+        """
+
         new_color = max(partial_coloring.values()) + 1
-        for v in working_graph.nodes():
+        for v in graph.nodes():
             partial_coloring[v] = new_color
+            graph.remove_node(v)
 
     def get_algorithm_name(self):
+        """Return the name of the algorithm.
+
+        :return: the name of the algorithm
+        """
         return self._name
 
 
 def create_partial_coloring_algorithm(partial_coloring_params, algorithm_name):
-    """ Method creates PartialColoringAlgorithm object based on parameters given as dictionary of string -> string
+    """Method creates PartialColoringAlgorithm object based on parameters given as dictionary of string -> string
         mappings.
 
-        partial_coloring_params:
-            partial_color_strategy,
-            partition_strategy_params,
-            partial_color_strategy_data_params,
+    :param partial_coloring_params: all the parameters needed for coloring algorithm
+    :return created PartialColoringAlgorithm object
     """
 
     partial_color_strategy_map = {

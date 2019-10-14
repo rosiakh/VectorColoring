@@ -4,6 +4,8 @@ from color_indsets import *
 from configuration import algorithm_options_config
 
 
+# TODO: probably needs rework
+# TODO: needs update to docstrings
 def color_by_independent_sets_parallel(graph, partial_coloring, partial_color_strategy_params):
     """This strategy finds one or more independent set finding it one list of sets at a time."""
 

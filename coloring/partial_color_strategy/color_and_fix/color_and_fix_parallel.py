@@ -7,6 +7,8 @@ from configuration import algorithm_options_config
 from solver.solver import compute_vector_coloring
 
 
+# TODO: probably needs rework
+# TODO: needs update to docstrings
 def color_all_vertices_at_once_parallel(graph, partial_coloring, partial_color_strategy_params):
     """General strategy for coloring whole graph at once and then improving the coloring.
 

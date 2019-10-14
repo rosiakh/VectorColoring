@@ -15,10 +15,12 @@ from configuration import paths_config
 def read_graph_from_directory_recursively(path):
     """ Returns list of all graphs in a given directory and recursively in it's subdirectories.
 
-    r = root, d = directories, f = files
+    :param path: path to the root directory from which to start.
+    :return List of all graphs in the directory tree
     """
 
     files = []
+    # r = root, d = directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
             if '.col' in file:
@@ -32,7 +34,11 @@ def read_graph_from_directory_recursively(path):
 
 
 def read_graphs_from_directory(path):
-    """ Returns list of all graphs in a given directory but not in subdirectories. """
+    """ Returns list of all graphs in a given directory but not in subdirectories.
+
+    :param path: path to te directory with graphs
+    :return List of all graphs in a given directory but not in subdirectories.
+    """
 
     from os import listdir
     from os.path import isfile, join
@@ -48,11 +54,8 @@ def read_graphs_from_directory(path):
 def read_graph_from_file(path):
     """Creates graph from DIMACS-format file.
 
-    Args:
-        graph_name (str): Name of the file to read, without directory and extension.
-
-    Returns:
-        Graph: networkx.Graph object created from given file with nodes indexed from 0.
+    :param path: Name of the file to read, without directory and extension.
+    :return networkx.Graph object created from given file with nodes indexed from 0.
     """
 
     graph = nx.Graph()
@@ -126,6 +129,12 @@ def draw_graph(graph, coloring, to_console=True, to_image=False, filename='graph
 
 
 def find_starting_node_index(path):
+    """ Finds the minimum number of a vertex in graph file.
+
+    :param path: path to a file with graph in DIMACS format
+    :return Minimum number of a vertex in the file
+    """
+
     starting_index = sys.maxint
     with open(path) as f:
         for line in f:

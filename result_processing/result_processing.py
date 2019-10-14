@@ -12,7 +12,7 @@ from data_to_save import DataToSave
 
 
 class RunResults:
-    """ Represents all the information that is gathered during run of a single algorithm on a single graph (possibly
+    """Represents all the information that is gathered during run of a single algorithm on a single graph (possibly
         repeatedly). """
 
     def __init__(self, graph, algorithm, average_time, best_coloring, average_nr_of_colors, repetitions):
@@ -25,12 +25,23 @@ class RunResults:
 
 
 def get_sorted_graph_names(results_directory):
+    """Get sorted names of the graphs whose run results reside in results_directory by looking at the names of
+        subdirectories contained in results_directory.
+
+    :param results_directory: directory in which to look for run results
+    :return: list of names of graphs whose results reside in results_directory
+    """
 
     graph_directories = [d for d in listdir(results_directory) if isdir(join(results_directory, d))]
     return graph_directories
 
 
 def get_sorted_algorithm_names(results):
+    """
+
+    :param results:
+    :return: sorted
+    """
     return results.keys()
 
 
@@ -53,6 +64,14 @@ def save_run_result_to_file(run_result, subdir):
 
 
 def get_run_result_save_path(graph, algorithm, results_subdir):
+    """Find path that should be used to save run results for given graph, algorithm and results_subdir
+
+    :param graph: (nx.Graph)
+    :param algorithm: coloring algorithm
+    :param results_subdir:
+    :return: created path to save run results
+    """
+
     graph_dirname = graph.name.replace(":", "")
     directory = paths_config.results_directory() + "/" + results_subdir + "/" + graph_dirname + "/"
     filename = algorithm.get_algorithm_name() + ".json"
@@ -61,17 +80,23 @@ def get_run_result_save_path(graph, algorithm, results_subdir):
 
 
 def save_runs_data_to_file(algorithms_results, subdir):
-    """ algorithm_results is a graph -> list or RunResult dictionary. """
+    """Saves algorithms_results to a file
+
+    :param algorithms_results: a graph -> list or RunResult dictionary.
+    :param subdir: subdirectory in which to save run results
+    """
 
     for graph in algorithms_results:
         save_graph_run_data_to_file(algorithms_results[graph], graph, subdir)
 
 
 def save_graph_run_data_to_file(graph_results, graph, subdir):
-    """Saves results of all algorithms on one graph.
+    """Saves results of all algorithms on one graph in:
+        paths_config.results_directory()/subdir/graph_dirname/
 
-    Args:
-        graph_results (list of RunResults): algorithm results for graph
+    :param graph_results: (list of RunResults) algorithm results for graph
+    :param graph: (nx.Graph)
+    :param subdir: subdirectory in which to save run data
     """
 
     graph_dirname = graph.name.replace(":", "")
@@ -93,11 +118,22 @@ def save_graph_run_data_to_file(graph_results, graph, subdir):
 
 
 def load_algorithm_run_data_from_seed(run_seed=None):
+    """Load algorithm run data associated with given run seed
+
+    :param run_seed: a run seed
+    :return: algorithm run data associated with given run seed
+    """
     directory = paths_config.results_directory(run_seed)
     return load_algorithm_run_data_from_results_directory(directory)
 
 
 def load_algorithm_run_data_from_results_directory(directory):
+    """Load algorithm run data from given directory
+
+    :param directory: directory in which to look for algorithm run data
+    :return: (map directory -> graph_results) loaded run data
+    """
+
     graph_directories = [d for d in listdir(directory) if isdir(join(directory, d))]
     general_results = {}
     for graph_directory in graph_directories:
@@ -109,6 +145,12 @@ def load_algorithm_run_data_from_results_directory(directory):
 
 
 def load_algorithm_run_data_from_graph_directory(graph_directory):
+    """Load algorithm run data from given graph directory
+
+    :param graph_directory: directory in which to look for run data
+    :return: (map)
+    """
+
     only_files = [f for f in listdir(graph_directory) if isfile(join(graph_directory, f))]
     graph_results = {}
     for filename in only_files:

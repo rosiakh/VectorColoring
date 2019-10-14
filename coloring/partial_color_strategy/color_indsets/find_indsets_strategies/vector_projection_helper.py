@@ -29,7 +29,8 @@ def obtain_single_ind_set_by_projection(vector_coloring, r, find_indsets_strateg
                 num=c_params['nr_of_c_params_tried_per_random_vector']):
 
             ind_set, current_subgraph_nodes = \
-                find_ind_set_for_c(graph, x, c, inv_vertices_mapping, find_indsets_strategy_params)
+                find_ind_set_for_c(graph, x[:graph.number_of_nodes()], c, inv_vertices_mapping,
+                                   find_indsets_strategy_params)
 
             if is_better_ind_sets(graph, ind_set, best_ind_set):
                 best_ind_set = ind_set

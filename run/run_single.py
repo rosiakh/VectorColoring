@@ -8,6 +8,13 @@ from graph.graph_io import *
 
 
 def run_single(graph_path, algorithm):
+    """Runs whole program with a single algorithm on a single graph.
+
+    :param graph_path: path to the file with the graph
+    :param algorithm: algorithm to use
+    :return: coloring of graph
+    """
+
     logging.basicConfig(format='%(message)s', level=logging.DEBUG, datefmt='%I:%M:%S')
 
     (_, filename) = os.path.split(graph_path)

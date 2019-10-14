@@ -10,7 +10,10 @@ from configuration.algorithm_options_config import *
 
 
 def compute_optimal_coloring_lp(graph):
-    """Computes optimal coloring using linear programming."""
+    """Computes optimal coloring using linear programming.
+
+    :param graph: (nx.Graph)
+    """
 
     with Model() as M:
         n = graph.number_of_nodes()
@@ -57,7 +60,14 @@ def compute_optimal_coloring_lp(graph):
 
 
 def compute_optimal_coloring_dp(graph, partial_coloring=None, update_graph_and_coloring=False):
-    """ Computes optimal coloring using dynamic programming and updates graph and partial coloring. """
+    """Computes optimal coloring using dynamic programming and updates graph and partial coloring.
+
+    :param graph: nx.Graph object
+    :param partial_coloring: partial coloring of graph
+    :param update_graph_and_coloring: if True updates partial coloring according to found optimal coloring and removes
+        colored vertices from the graph
+    :return: optimal coloring of graph
+    """
 
     t_sets = {w: [] for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}
     t = {w: -1 for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}  # set(w)

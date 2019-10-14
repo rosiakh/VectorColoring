@@ -1,7 +1,5 @@
 import logging
 
-import networkx as nx
-
 from coloring.partial_color_strategy.color_and_fix.color_and_fix_helper import *
 from coloring.partial_color_strategy.color_and_fix.partition_strategies.clustering_partition import \
     clustering_partition_strategy, kmeans_clustering_partition_strategy
@@ -19,17 +17,14 @@ partition_strategy_map = {
 
 
 def color_all_vertices_at_once(graph, partial_coloring, partial_color_strategy_params):
-    """General strategy for coloring whole graph at once and then improving the coloring.
+    """ General strategy for coloring whole graph at once and then improving the coloring.
 
     This strategy colors graph by finding the best partition i.e. possibly illegal coloring of all vertices,
     and then truncating the input graph by finding some proper partial coloring and deleting its vertices.
 
-    Args:
-        graph (nx.Graph): Graph to be processed. Function modifies this parameter.
-        vector_coloring (2-dim matrix): Rows constitute vector coloring of graph.
-        partial_coloring (dict): Dictionary of current (probably partial) partial_coloring of working graph. Function modifies this parameter.
-        partition_strategy (lambda graph, vector_coloring, partial_coloring, options): Function that computes coloring, possibly illegal,
-            of graph using some hyperplane partition strategy
+    :param graph: (nx.Graph) Graph to be processed. Function modifies this parameter.
+    :param partial_coloring: (dict) Dictionary of current partial_coloring of graph. Function modifies this parameter.
+    :param partial_color_strategy_params: (dict) params of chosen partial color strategy (here: color_and_fix)
     """
 
     logging.info('Looking for partial coloring using color and fix strategy...')
@@ -39,6 +34,7 @@ def color_all_vertices_at_once(graph, partial_coloring, partial_color_strategy_p
         partial_color_strategy_params['nr_of_vector_colorings_to_try']
 
     for _ in range(nr_of_trials):
+        # find partition i.e. possibly illegal coloring of ALL vertices
         partition = partition_strategy_map[partial_color_strategy_params['partition_strategy']](
             graph, partial_color_strategy_params['partition_strategy_params'])
 
@@ -46,6 +42,8 @@ def color_all_vertices_at_once(graph, partial_coloring, partial_color_strategy_p
                                partial_color_strategy_params['independent_set_extraction_strategy']):
             best_partition = partition
 
+    # find some proper partial coloring as a subset of found best partition and update partial_coloring of graph
+    # accordingly. remove colored vertices from graph
     nr_of_nodes_colored = update_coloring_and_graph(
         graph, partial_coloring, best_partition, partial_color_strategy_params['independent_set_extraction_strategy'])
 
@@ -53,15 +51,15 @@ def color_all_vertices_at_once(graph, partial_coloring, partial_color_strategy_p
 
 
 def update_coloring_and_graph(graph, partial_coloring, partition, strategy):
-    """Given best partition updates global partial_coloring (so that coloring is never illegal) and truncates graph graph
+    """ Given (best found) partition updates global partial_coloring (so that it is never illegal) and truncates graph
+        by removing colored vertices.
 
-    Args:
-        graph (nx.Graph): Graph that is being colored. The function removes some nodes from it so that only the part
+    :param graph: (nx.Graph) Graph that is being colored. The function removes some nodes from it so that only the part
             that is not yet colored remains.
-        partial_coloring (dict): Global dictionary of colors of vertices of graph.
-        partition (dict): Coloring of vertices of graph given by hyperplane partition. Might be illegal.
-
-        :return number of actually colored nodes
+    :param partial_coloring: (dict) Global dictionary of colors of vertices of graph.
+    :param partition: (dict) Coloring of vertices of graph given by hyperplane partition. Might be illegal.
+    :param strategy: strategy of removing nodes to obtain legal coloring from a partition
+    :return number of actually colored nodes (=number of vertices removed from graph)
     """
 
     nodes_to_del = find_nodes_to_delete(graph, partition, strategy)

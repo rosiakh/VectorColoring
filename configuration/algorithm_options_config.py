@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Configuration of some of the options of algorithms. """
+"""Configuration of some of the options of algorithms."""
 
 sdp_strong_threshold = -1  # for smaller graphs solver always solves strong sdp
 use_previous_sdp_result = False  # if set to True other algorithms may use sdp results of other algorithms in the same run
