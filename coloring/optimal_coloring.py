@@ -13,6 +13,7 @@ def compute_optimal_coloring_lp(graph):
     """Computes optimal coloring using linear programming.
 
     :param graph: (nx.Graph)
+    :return (map vertex -> color) optimal coloring
     """
 
     with Model() as M:
@@ -66,7 +67,7 @@ def compute_optimal_coloring_dp(graph, partial_coloring=None, update_graph_and_c
     :param partial_coloring: partial coloring of graph
     :param update_graph_and_coloring: if True updates partial coloring according to found optimal coloring and removes
         colored vertices from the graph
-    :return: optimal coloring of graph
+    :return: (map vertex -> color) optimal coloring of graph
     """
 
     t_sets = {w: [] for r in range(graph.number_of_nodes() + 1) for w in itertools.combinations(graph.nodes(), r)}

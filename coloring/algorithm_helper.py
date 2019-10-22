@@ -12,7 +12,7 @@ def find_number_of_vector_colors_from_vector_coloring(graph, vector_coloring):
     """Given vector coloring find number of 'vector-colors' used i.e. smallest 'k' such that vector_coloring is
         vector k-coloring of graph.
 
-        Vector coloring is obtained from matrix coloring computed using SDP optimalization and Cholesky factorization.
+        Vector coloring is obtained from matrix coloring computed using SDP optimization and Cholesky factorization.
             Both of those processes may introduce error and return number of 'vector-colors' greater than vector chromatic
             number.
 
@@ -76,6 +76,7 @@ def get_nodes_sorted_by_degree(graph):
     """Returns list of nodes sorted by degree in descending order.
 
     :param graph: (nx.Graph)
+    :return list of nodes sorted by degree in decreasing order
     #TODO: it would be enough to just find the highest degree - that's how it's used
     """
 
@@ -89,6 +90,7 @@ def get_highest_degree_node(graph):
     :return: node of the graph with the highest degree
     # TODO: use this function instead of sorting all nodes by 'get_nodes_sorted_by_degree'
     """
+
     return max(list(graph.degree(graph.nodes())), key=itemgetter(1))[0]
 
 
@@ -122,6 +124,7 @@ def find_nodes_to_delete(graph, partition, independent_set_extraction_strategy):
     :param partition: Full, possibly illegal, coloring of graph. If it is None than assume all colors are the same
             (fixed graph should become an independent set).
     :param independent_set_extraction_strategy
+    :return nodes to delete so that subgraph induced on remaining nodes will be legally colored
     """
 
     nodes_to_delete = []

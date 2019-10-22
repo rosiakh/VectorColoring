@@ -13,7 +13,7 @@ from configuration import paths_config
 
 
 def read_graph_from_directory_recursively(path):
-    """ Returns list of all graphs in a given directory and recursively in it's subdirectories.
+    """Returns list of all graphs in a given directory and recursively in it's subdirectories.
 
     :param path: path to the root directory from which to start.
     :return List of all graphs in the directory tree
@@ -34,7 +34,7 @@ def read_graph_from_directory_recursively(path):
 
 
 def read_graphs_from_directory(path):
-    """ Returns list of all graphs in a given directory but not in subdirectories.
+    """Returns list of all graphs in a given directory but not in subdirectories.
 
     :param path: path to te directory with graphs
     :return List of all graphs in a given directory but not in subdirectories.
@@ -88,10 +88,11 @@ def read_graph_from_file(path):
 def draw_graph(graph, coloring, to_console=True, to_image=False, filename='graph'):
     """Draws graph and saves image to file.
 
-    Args:
-        graph (Graph): Graph to be drawn.
-        coloring (dict): Global vertex-color dictionary.
-        filename (str): File to save.
+    :param graph: (nx.Graph) Graph to be drawn.
+    :param coloring: (dict) Global vertex-color dictionary.
+    :param to_console: (bool) should the graph be drawn to console
+    :param to_image: (bool) should the graph be drawn to an image
+    :param filename: (str) File to save.
     """
 
     output_dir = paths_config.drawings_directory()
@@ -129,7 +130,7 @@ def draw_graph(graph, coloring, to_console=True, to_image=False, filename='graph
 
 
 def find_starting_node_index(path):
-    """ Finds the minimum number of a vertex in graph file.
+    """Finds the minimum number of a vertex in graph file.
 
     :param path: path to a file with graph in DIMACS format
     :return Minimum number of a vertex in the file
@@ -145,10 +146,9 @@ def find_starting_node_index(path):
 
 
 def display_graph_stats(graph):
-    """Displays some graphs stats.
+    """Displays some graph's stats.
 
-    Args:
-        graph (Graph): Graph to display.
+    :param graph: (nx.Graph) Graph to display.
     """
 
     degrees = dict(graph.degree()).values()
@@ -167,6 +167,12 @@ def display_graph_stats(graph):
 
 
 def save_graph_to_col_file(graph, path):
+    """Saves graph to a filename in DIMACS format
+
+    :param graph: (nx.Graph) graph to save to a file
+    :param path: path to where the graph should be saved
+    """
+
     filename = path if path.endswith("/") else path + "/"
     filename = filename + graph.name + '.col'
 

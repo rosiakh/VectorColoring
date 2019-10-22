@@ -10,6 +10,15 @@ from graph.graph_io import save_graph_to_col_file
 
 
 def create_kneser_graph(m):
+    """Creates Kneser graph that is graph whose vertices correspond to r-element subsets of m-element set and edges
+        connect those subsets that have less than t elements in common.
+
+    In this function r and t parameters are set based on m.
+
+    :param m: parameter m from the Kneser graph description
+    :return: (nx.Graph) created Kneser graph
+    """
+
     r = m / 2
     t = m / 8
 
@@ -30,15 +39,15 @@ def create_kneser_graph(m):
 
 
 def create_k_colorable_graph(k, n, p, cluster_by_modulo=False):
-    """Creates k-colorable graph with color classes of the same cardinality.
+    """Creates k-colorable graph with all color classes of the same cardinality.
 
     If p < 1 then chromatic number may be less than k.
 
-    Args:
-        k (int): Number of vertex clusters.
-        n (int): Number of vertices in each cluster.
-        p (float): Probability of edge creation between vertices in different clusters.
-        cluster_by_modulo (bool): Each cluster contains vertices with the same remainder modulo k
+    :param k: (int) Number of vertex clusters.
+    :param n: (int) Number of vertices in each cluster.
+    :param p: (float) Probability of edge creation between vertices in different clusters.
+    :param cluster_by_modulo: (bool) if true, each cluster contains vertices with the same remainder modulo k
+    :return: (nx.Graph) created graph
     """
 
     vertices = list(range(k * n))
@@ -71,9 +80,9 @@ def create_k_colorable_graph(k, n, p, cluster_by_modulo=False):
 def create_k_cycle(k, n):
     """Creates graph that is hard to color for dsatur.
 
-    Args:
-        k (int): Distance to the farthest neighbor of each vertex.
-        n (int): Number of vertices.
+    :param k: (int) Distance to the farthest neighbor of each vertex.
+    :param n: (int) Number of vertices.
+    :return: (nx.Graph) created graph
     """
 
     vertices = [i for i in range(n)]
@@ -95,6 +104,12 @@ def create_k_cycle(k, n):
 
 
 def create_crown_graph(n):
+    """Creates crown graph with 2n vertices (https://en.wikipedia.org/wiki/Crown_graph)
+
+    :param n: half of the number of vertices
+    :return: (nx.Graph) created graph
+    """
+
     vertices = [i for i in range(2 * n)]
     edges = []
     for i in range(n):
@@ -111,7 +126,11 @@ def create_crown_graph(n):
 
 
 def create_star(n):
-    """Creates star with 1 central node and n nodes of degree 1."""
+    """Creates star with 1 central node and n nodes of degree 1. (https://en.wikipedia.org/wiki/Star_(graph_theory))
+
+    :param n: one less than number of nodes
+    :return: (nx.Graph) created graph
+    """
 
     graph = nx.star_graph(n)
     graph.name = 'star_{0}n'.format(n)
@@ -122,7 +141,13 @@ def create_star(n):
 
 
 def create_erdos_renyi_graph(n, p, name_suffix=""):
-    """Creates random graph of type networkx.erdos_renyi_graph."""
+    """Creates random graph of type networkx.erdos_renyi_graph. (https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model)
+
+    :param n:
+    :param p:
+    :param name_suffix: suffix added to the name of the graph
+    :return (nx.Graph) created graph
+    """
 
     graph = nx.erdos_renyi_graph(n, p)
     graph.name = 'erdos_renyi_{0}n_{1}p'.format(n, p) + '_' + name_suffix
@@ -135,10 +160,11 @@ def create_erdos_renyi_graph(n, p, name_suffix=""):
 def create_watts_strogatz_graph(n, k, p, name_suffix=""):
     """Creates random graph of type nx.connected_watts_strogatz_graph.
 
-    Args:
-        n (int): the number of nodes
-        k (int): each node is joined with k nearest neighbors in a ring topology
-        p (float): the probability of rewiring each edge
+    :param n: (int) the number of nodes
+    :param k: (int) each node is joined with k nearest neighbors in a ring topology
+    :param p: (float) the probability of rewiring each edge
+    :param name_suffix: suffix added to the name of the graph
+    :return (nx.Graph) created graph
     """
 
     graph = nx.connected_watts_strogatz_graph(n, k, p)
@@ -151,9 +177,11 @@ def create_watts_strogatz_graph(n, k, p, name_suffix=""):
 
 def create_barabasi_albert_graph(n, m, name_suffix=""):
     """Creates random graph of type networkx.dense_gnm_random_graph.
-    Args:
-        n (int): number of nodes
-        m (int): number of edges to attach from a new node to existing nodes
+
+    :param n: (int) number of nodes
+    :param m: (int) number of edges to attach from a new node to existing nodes
+    :param name_suffix: suffix added to the name of the graph
+    :return (nx.Graph) created graph
     """
 
     graph = nx.dense_gnm_random_graph(n, m)
@@ -165,10 +193,14 @@ def create_barabasi_albert_graph(n, m, name_suffix=""):
 
 
 def create_set_of_random_graphs(min_vertices=20, max_vertices=40, iterations_per_vertex_number=2):
-    """Creates set of random graphs.
+    """Creates set of random graphs using erdos_renyi model creating iterations_per_vertex_number graphs
+        for each value between min_vertices and max_vertices.
 
-    Returns:
-        list: List of Graph instances."""
+    :param min_vertices: minimal number of vertices of each graph
+    :param max_vertices: maximal number of vertices of each graph
+    :param iterations_per_vertex_number: number of graphs per each number of vertices
+    :return: list of graph (nx.Graph)
+    """
 
     graphs = []
     for n in range(min_vertices, max_vertices):

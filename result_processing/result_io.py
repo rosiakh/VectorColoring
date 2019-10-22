@@ -5,7 +5,8 @@ from configuration import paths_config
 
 
 def find_newest_result_seed():
-    """Find the newest result seed from the names of subdirectories of base_directory assuming that the seeds have specific format
+    """Find the newest result seed from the names of subdirectories of base_directory assuming that the seeds have
+        specific format
 
     :return: newest result seed from those found in base_directory with given format.
     """
@@ -19,7 +20,7 @@ def find_newest_result_seed():
 
 
 def all_subdirs_of(b='.'):
-    """Returns list of path to all subdirectories of b
+    """Returns list of paths to all subdirectories of b
 
     :param b: a directory
     :return: list of all subdirectories

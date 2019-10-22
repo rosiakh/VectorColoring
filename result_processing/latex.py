@@ -5,10 +5,11 @@ no_result_char = "--"
 
 
 def create_and_save_latex_tables(result_seed=None):
-    """
+    """Create results in form of latex and save it to file (which won't compile - it requires some boilerplate latex)
 
-    :param result_seed:
-    :return:
+    Created (non-compiling) latex is saved in "paths_config.latex_result_path"
+
+    :param result_seed: result seed associated with results that we want to present in latex
     """
 
     if result_seed is None:
@@ -45,15 +46,17 @@ def create_and_save_latex_tables(result_seed=None):
 
 def create_latex_table_string(results_directory, table_caption, data_to_save_property, is_float_property, is_bold_min,
                               algorithm_names):
-    """
+    """Creates latex code representing one result table.
 
-    :param results_directory:
-    :param table_caption:
-    :param data_to_save_property:
-    :param is_float_property:
-    :param is_bold_min:
-    :param algorithm_names:
-    :return:
+    :param results_directory: directory containing results that are to be put in the table
+    :param table_caption: table caption
+    :param data_to_save_property: what property of the result data is to be put in the table (e.g. "min_nr_of_colors"
+        or "avg_time")
+    :param is_float_property: is the property of type float
+    :param is_bold_min: if true, then the minimal value of the row will be made bold; if false, the maximal value will
+        made bold
+    :param algorithm_names: list of names of algorithms that were used to create the result data
+    :return: latex code representing a table of results
     """
 
     sorted_graph_names = get_sorted_graph_names(results_directory)
@@ -72,10 +75,10 @@ def create_latex_table_string(results_directory, table_caption, data_to_save_pro
 
 
 def create_legend(algorithm_names):
-    """
+    """Creates description of the results by presenting used algorithms.
 
-    :param algorithm_names:
-    :return:
+    :param algorithm_names: names of algorithms that are to be put in the legend
+    :return: description of algorithms in form of latex code
     """
 
     latex_text = "\\begin{itemize}\n"
@@ -87,10 +90,12 @@ def create_legend(algorithm_names):
 
 
 def get_algorithm_names(results_directory):
-    """
+    """Gets names of all algorithms used to obtain the results in results_directory based on algorithm info filename.
+
+    Algorithm info filename is "results_directory/paths_config.algorithm_info_filename"
 
     :param results_directory:
-    :return:
+    :return: list of algorithm names
     """
 
     algorithm_names = []
@@ -103,16 +108,18 @@ def get_algorithm_names(results_directory):
 
 def create_latex_table_row(graph_name, sorted_algorithm_names, results, data_to_save_property, is_float_property,
                            is_bold_min, is_round_float=True):
-    """
+    """Creates latex code representing one row of a table
 
     :param graph_name: unused
-    :param sorted_algorithm_names:
-    :param results:
-    :param data_to_save_property:
-    :param is_float_property:
-    :param is_bold_min:
-    :param is_round_float:
-    :return:
+    :param sorted_algorithm_names: names of algorithms for which results are presented in the row
+    :param results: results that will be put in the row
+    :param data_to_save_property: name of the property that will be read from results and put into the row (e.g.
+        "min_nr_of_colors" or "avg_time")
+    :param is_float_property: is the property of type float
+    :param is_bold_min: if true, then the minimal value of the row will be made bold; if false, the maximal value will
+        made bold
+    :param is_round_float: should the property value be rounded if it is of type float
+    :return: latex code representing one row of a table
     """
 
     latex_row = "{0} & {1} & {2:.2f}".format(
@@ -145,11 +152,13 @@ def create_latex_table_top(sorted_algorithm_names, caption):
         \begin{longtable}[c]{|l|c|c|...|c|}
         \caption{some caption}
         \hline
-        #TODO finish this docstring
+        Graph & Vertices & Density & algName1 & algName2 & .... & algNameN
+        \hline
 
-    :param sorted_algorithm_names:
-    :param caption:
-    :return: latex table top part string
+    :param sorted_algorithm_names: names of algorithms to be put as column headers from left to right (starting with
+        4th column)
+    :param caption: table caption
+    :return: latex code representing top part of the table with header and caption
     """
 
     longtable = "\\begin{longtable}[c]{|l|c|c|" + "c|" * len(sorted_algorithm_names) + "}\n"
@@ -195,13 +204,14 @@ def create_latex_table_bottom():
 
 
 def bold_extreme_value_latex_row(latex_row, from_column, to_column, is_bold_min):
-    """
+    """Make extremal (minimal or maximal) values in given latex row bold by using \textbf{...}
 
-    :param latex_row:
-    :param from_column:
-    :param to_column:
-    :param is_bold_min:
-    :return:
+    :param latex_row: latex code representing a row in a table
+    :param from_column: first column that we are taking into account (numbering from left)
+    :param to_column: last column that we are taking into account (numbering from left)
+    :param is_bold_min: if true, then the minimal value of the row will be made bold; if false, the maximal value will
+        made bold
+    :return: latex code with row with extremal value made bold
     """
 
     latex_row_values_with_special_chars = latex_row.split(' & ')[from_column:to_column]

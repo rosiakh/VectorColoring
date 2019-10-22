@@ -2,7 +2,9 @@ import networkx as nx
 
 
 class DataToSave:
-    """ Class represent all data that is saved for one graph x one algorithm (possibly multiple runs). """
+    """Class represent all data that is saved for one graph x one algorithm (possibly multiple runs) based on
+        graph (networkx.Graph) and run_result (RunResults) objects.
+    """
 
     def __init__(self, graph, run_result):
         self.graph_name = graph.name

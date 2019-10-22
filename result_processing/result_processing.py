@@ -45,11 +45,15 @@ def get_sorted_algorithm_names(results):
     return results.keys()
 
 
-def save_run_result_to_file(run_result, subdir):
-    """ Saves result of one algorithm on one graph."""
+def save_run_result_to_file(run_result, results_subdir):
+    """Saves result of one algorithm on one graph.
+
+    :param run_result: run result to save to file
+    :param results_subdir:
+    """
 
     run_result_save_path, run_result_save_dir = \
-        get_run_result_save_path(run_result.graph, run_result.algorithm, subdir)
+        get_run_result_save_path(run_result.graph, run_result.algorithm, results_subdir)
     if not os.path.exists(run_result_save_dir):
         os.makedirs(run_result_save_dir)
 
