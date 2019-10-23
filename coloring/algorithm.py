@@ -128,9 +128,12 @@ class PartialColoringAlgorithm:
         """
 
         new_color = max(partial_coloring.values()) + 1
+        nodes_to_remove = []
         for v in graph.nodes():
             partial_coloring[v] = new_color
-            graph.remove_node(v)
+            nodes_to_remove.append(v)
+
+        graph.remove_nodes_from(nodes_to_remove)
 
     def get_algorithm_name(self):
         """Return the name of the algorithm.

@@ -12,9 +12,9 @@ def find_number_of_vector_colors_from_vector_coloring(graph, vector_coloring):
     """Given vector coloring find number of 'vector-colors' used i.e. smallest 'k' such that vector_coloring is
         vector k-coloring of graph.
 
-        Vector coloring is obtained from matrix coloring computed using SDP optimization and Cholesky factorization.
-            Both of those processes may introduce error and return number of 'vector-colors' greater than vector chromatic
-            number.
+    Vector coloring is obtained from matrix coloring computed using SDP optimization and Cholesky factorization.
+    Both of those processes may introduce error and return number of 'vector-colors' greater than vector chromatic
+    number.
 
     :param graph: (nx.Graph) Graph of which vector_coloring is vector coloring.
     :param vector_coloring: (2-dim matrix) Rows of vector_coloring comprise vector coloring of graph. Nth row is assigned to
@@ -39,9 +39,9 @@ def find_number_of_vector_colors_from_vector_coloring(graph, vector_coloring):
 def has_edge_between_ith_and_jth(graph, i, j):
     """Checks if there is an edge in graph between i-th vertex and j-th vertex after sorting them.
 
-        Graph may have vertex called 'i' that isn't it's i-th vertex in sorted order (e.g. when some vertices have been
-            removed from the graph). This function checks if there is an edge between i-th and j-th vertex in sorted
-            order, so i-th and j-th vertex exist as long as those numbers are less than G.number_of_nodes()
+    Graph may have vertex called 'i' that isn't it's i-th vertex in sorted order (e.g. when some vertices have been
+    removed from the graph). This function checks if there is an edge between i-th and j-th vertex in sorted
+    order, so i-th and j-th vertex exist as long as those numbers are less than G.number_of_nodes()
 
     :param graph: (nx.Graph) Graph to be processed
     :param i: (int) Number between 0 and G.number_of_nodes()-1

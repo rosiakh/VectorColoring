@@ -70,9 +70,9 @@ def find_indsets_by_dummy_vector_projection(graph, find_indsets_strategy_params,
     ind_sets = []
     almost_ind_sets = []
     n = graph.number_of_nodes()
-    r = -dummy_vector_coloring[n]
-    best_ind_set, best_almost_ind_set = obtain_single_ind_set_by_projection(
-        dummy_vector_coloring, r, find_indsets_strategy_params, c_opt, graph)
+    pivot_vector = -dummy_vector_coloring[n]
+    best_ind_set, best_almost_ind_set = obtain_single_ind_set_by_projection(dummy_vector_coloring, pivot_vector,
+                                                                            find_indsets_strategy_params, c_opt, graph)
 
     ind_sets.extend(best_ind_set)
     almost_ind_sets.extend(best_almost_ind_set)

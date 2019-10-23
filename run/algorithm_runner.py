@@ -3,6 +3,7 @@
 Usage: python algorithm_runner.py
 """
 
+import traceback
 from timeit import default_timer as timer
 
 from coloring.algorithm import *
@@ -76,6 +77,7 @@ def run_check_save_on_graphs(graphs, algorithms, results_subdir):
                     run_result = run_algorithm_on_graph(graph, algorithm)
                 except Exception, e:
                     print 'Error has occurred during coloring: ' + str(e)
+                    traceback.print_exc()
                     continue
 
                 if not check_if_coloring_legal(graph, run_result.best_coloring):
