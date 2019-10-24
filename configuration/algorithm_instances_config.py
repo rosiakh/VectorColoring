@@ -170,7 +170,7 @@ algorithms_configured['IndSets strategy -random vector projection -ratio -low'] 
             'find_indsets_strategy_params': {
                 'c_adaptation_strategy': 'ratio',
                 'c_adaptation_strategy_params': {
-                    'ratio_upper_bound': 0.4,
+                    'ratio_lower_bound': 0.4,
                     'c_lower_bound': 0.1,
                     'c_decrease_ratio': 0.95,
                 },
@@ -193,7 +193,7 @@ algorithms_configured['IndSets strategy -random vector projection -ratio -high']
             'find_indsets_strategy_params': {
                 'c_adaptation_strategy': 'ratio',
                 'c_adaptation_strategy_params': {
-                    'ratio_upper_bound': 0.7,
+                    'ratio_lower_bound': 0.7,
                     'c_lower_bound': 0.1,
                     'c_decrease_ratio': 0.7,
                 },
@@ -277,7 +277,7 @@ algorithms_configured[
                 },
                 'c_adaptation_strategy': 'ratio',
                 'c_adaptation_strategy_params': {
-                    'ratio_upper_bound': 0.6,
+                    'ratio_lower_bound': 0.6,
                     'c_lower_bound': 0.1,
                     'c_decrease_ratio': 0.7,
                     'initial_c_percentile': 10,
@@ -305,7 +305,7 @@ algorithms_configured[
                 },
                 'c_adaptation_strategy': 'ratio',
                 'c_adaptation_strategy_params': {
-                    'ratio_upper_bound': 0.3,
+                    'ratio_lower_bound': 0.3,
                     'c_lower_bound': 0.1,
                     'c_decrease_ratio': 0.95,
                     'initial_c_percentile': 10,
@@ -403,7 +403,7 @@ algorithms_configured[
                 'greedy_continue_strategy': 'ratio',
                 'greedy_continue_strategy_params': {
                     'lower_bound_nr_of_nodes': 10,
-                    'ratio_upper_bound': 0.8,
+                    'ratio_lower_bound': 0.8,
                 },
                 'alpha_upper_bound': 0.0,
                 'find_almost_indsets_strategy': 'greedy',
@@ -429,7 +429,7 @@ algorithms_configured[
                 'greedy_continue_strategy': 'ratio',
                 'greedy_continue_strategy_params': {
                     'lower_bound_nr_of_nodes': 10,
-                    'ratio_upper_bound': 0.5,
+                    'ratio_lower_bound': 0.5,
                 },
                 'alpha_upper_bound': 0.0,
                 'find_almost_indsets_strategy': 'greedy',

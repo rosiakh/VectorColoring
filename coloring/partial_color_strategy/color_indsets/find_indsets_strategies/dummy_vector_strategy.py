@@ -55,9 +55,9 @@ def find_indsets_by_dummy_vector_projection(graph, find_indsets_strategy_params,
 
     :param graph: (nx.Graph)
     :param find_indsets_strategy_params: parameters needed for dummy vector projection strategy
-    :param dummy_vector_coloring: (2-dim matrix (n+1)x(n+1)) vector coloring with one more dummy vector added as n+1-st
+    :param dummy_vector_coloring: ((n+1) x (n+1) matrix) vector coloring with one more dummy vector added as n+1-st
         vector
-    :param nr_of_sets: [reserved for future use]
+    :param nr_of_sets: [unused; reserved for future use]
     :return: (ind_sets, almost_ind_sets):
         ind_sets: list of independent sets of vertices (list of size 1)
         almost_ind_sets: list of sets of vertices that served as a basis for extraction of corresponding independent
@@ -136,19 +136,26 @@ def is_continue_greedy(has_edge_flag, find_indsets_strategy_params, ind_set, sor
         if i < greedy_params['lower_bound_nr_of_nodes']:
             return True
         ratio = float(len(ind_set)) / float(i)
-        return ratio > greedy_params['ratio_upper_bound']
+        return ratio > greedy_params['ratio_lower_bound']
 
 
 def compute_dummy_c_opt(graph, dummy_vector_coloring, percentile):
+    """Computes optimal value of threshold 'c' by taking value that ensures that given percentile of vertex-vectors
+    will have their dot products with dummy pivot value bigger than computed value and thus will fall into considered
+    almost independent set.
+
+    :param graph: (nx.Graph) unused
+    :param dummy_vector_coloring: ((n+1) x (n+1) matrix)
+    :param percentile: percentile of vectors that should have their dot product with dummy pivot bigger than returned
+        threshold
+    :return: dot product threshold
     """
-    :param graph:
-    :param dummy_vector_coloring:
-    :param percentile:
-    :return:
-    """
+
     dummy_matrix_coloring = np.dot(dummy_vector_coloring, np.transpose(dummy_vector_coloring))
+    # draw_distributions(dummy_matrix_coloring, 5.0)
+
+    # simply find percentile value in the last row of the matrix
     n = dummy_matrix_coloring.shape[0]
     dummy_dot_products = dummy_matrix_coloring[n - 1][0:n - 1]
 
-    # draw_distributions(dummy_matrix_coloring, 5.0)
     return -np.percentile(dummy_dot_products, percentile)

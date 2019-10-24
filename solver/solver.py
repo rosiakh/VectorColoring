@@ -64,7 +64,7 @@ def compute_dummy_matrix_coloring(graph, beta_factor_strategy, alpha_upper_bound
     :param graph: (nx.Graph)
     :param beta_factor_strategy: strategy describing how to choose beta factors
     :param alpha_upper_bound: upper bound for alpha parameter
-    :return: (n+1 x n+1 matrix) dummy matrix coloring, with n+1-st vector being dummy vector (not belonging to the graph)
+    :return: ((n+1) x (n+1) matrix) dummy matrix coloring, with n+1-st vector being dummy vector (not belonging to the graph)
 
     """
     if algorithm_options_config.solver_name == 'mosek':
@@ -145,7 +145,7 @@ def find_dummy_matrix_coloring_mosek(graph, beta_factors_strategy, alpha_upper_b
     :param graph: (nx.Graph)
     :param beta_factors_strategy: strategy describing how to choose beta factors
     :param alpha_upper_bound: upper bound for alpha parameter
-    :return: (n+1 x n+1 matrix) dummy matrix coloring
+    :return: ((n+1) x (n+1) matrix) dummy matrix coloring and value of 'alpha' that was achieved in optimum
     """
 
     with Model() as Mdl:
@@ -173,6 +173,8 @@ def find_dummy_matrix_coloring_mosek(graph, beta_factors_strategy, alpha_upper_b
 
         alpha_opt = alpha.level()[0]
         level = m.level()
+        # TODO: check if below is correct and maybe simplify it so that it makes sense
+        # TODO: possibly also return values of beta, not only alfa, as it may be useful to log it
         dummy_matrix_coloring = [[level[j * (n + 1) + i] for i in range(n + 1)] for j in range(n + 1)]
         dummy_matrix_coloring = np.array(dummy_matrix_coloring)
 

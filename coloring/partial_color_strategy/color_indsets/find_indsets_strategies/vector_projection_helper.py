@@ -33,9 +33,9 @@ def find_ind_set_for_c(graph, pivot_dot_products, c, inv_vertices_mapping, find_
 
 def obtain_single_ind_set_by_projection(vector_coloring, pivot_vector, find_indsets_strategy_params, c_opt, graph):
     """Given vector coloring (standard or dummy), a pivot vector, and theoretically good threshold 'c_opt' for value
-    of dot product it returns single independent set.
+    of dot product it returns single independent set using projection on pivot vector.
 
-    The independent set is obtained by obtaining and comparing a few different independent sets found using different
+    The independent set is obtained by finding and comparing a few different independent sets found using different
     values of dot product threshold. The thresholds used for finding those different independent set for comparison
     are computed using different 'c_adaptation_strategy' and are usually somehow based on 'c_opt'.
 
@@ -52,19 +52,20 @@ def obtain_single_ind_set_by_projection(vector_coloring, pivot_vector, find_inds
     inv_vertices_mapping = {i: v for i, v in enumerate(sorted(graph.nodes()))}
     c_params = find_indsets_strategy_params['c_adaptation_strategy_params']
     n = graph.number_of_nodes()
-    x = np.dot(vector_coloring, pivot_vector)
+    dot_products_with_pivot = np.dot(vector_coloring, pivot_vector)
     best_ind_set = []
     best_almost_ind_set = []
 
     if find_indsets_strategy_params['c_adaptation_strategy'] == 'linspace':
-        # TODO: opisz te strategie
+        # in 'linspace' strategy there are 'nr_of_c_params_tried_per_random_vector' values of threshold c that are
+        # evenly spaced in the interval [c_opt*c_param_lower_factor ; c_opt*c_param_upper_factor]
         for c in np.linspace(
                 c_opt * c_params['c_param_lower_factor'],
                 c_opt * c_params['c_param_upper_factor'],
                 num=c_params['nr_of_c_params_tried_per_random_vector']):
 
             ind_set, current_subgraph_nodes = \
-                find_ind_set_for_c(graph, x[:graph.number_of_nodes()], c, inv_vertices_mapping,
+                find_ind_set_for_c(graph, dot_products_with_pivot[:graph.number_of_nodes()], c, inv_vertices_mapping,
                                    find_indsets_strategy_params)
 
             if is_better_ind_sets(graph, ind_set, best_ind_set):
@@ -73,10 +74,15 @@ def obtain_single_ind_set_by_projection(vector_coloring, pivot_vector, find_inds
                 is_change = True
 
     elif find_indsets_strategy_params['c_adaptation_strategy'] == 'ratio':
-        #TODO: opisz te strategie
+        # in 'ratio' strategy threshold is initially set to 'c_opt' and in each iteration multiplied by 'c_decrease_ratio'
+        # until it either :
+        #   falls below 'c_lower_bound' or
+        #   the ratio of size of found independent set and almost independent set from which it was extracted falls
+        #       below 'ratio_lower_bound'
         c = c_opt
         while True:
-            ind_set, current_subgraph_nodes = find_ind_set_for_c(graph, x, c, inv_vertices_mapping,
+            ind_set, current_subgraph_nodes = find_ind_set_for_c(graph, dot_products_with_pivot, c,
+                                                                 inv_vertices_mapping,
                                                                  find_indsets_strategy_params)
 
             if is_better_ind_sets(graph, ind_set, best_ind_set):
@@ -86,7 +92,7 @@ def obtain_single_ind_set_by_projection(vector_coloring, pivot_vector, find_inds
 
             current_ratio = float(len(ind_set[0])) / float(len(current_subgraph_nodes)) if \
                 len(current_subgraph_nodes) > 0 else 1
-            if c < c_params['c_lower_bound'] or current_ratio < c_params['ratio_upper_bound'] \
+            if c < c_params['c_lower_bound'] or current_ratio < c_params['ratio_lower_bound'] \
                     or len(current_subgraph_nodes) == n:
                 break
             else:
