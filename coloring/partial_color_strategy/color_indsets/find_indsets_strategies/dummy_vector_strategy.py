@@ -70,6 +70,8 @@ def find_indsets_by_dummy_vector_projection(graph, find_indsets_strategy_params,
     ind_sets = []
     almost_ind_sets = []
     n = graph.number_of_nodes()
+
+    # pivot vector is the opposite of added dummy vector from which other vertex-vectors are repulsed
     pivot_vector = -dummy_vector_coloring[n]
     best_ind_set, best_almost_ind_set = obtain_single_ind_set_by_projection(dummy_vector_coloring, pivot_vector,
                                                                             find_indsets_strategy_params, c_opt, graph)

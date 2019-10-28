@@ -171,14 +171,7 @@ def find_dummy_matrix_coloring_mosek(graph, beta_factors_strategy, alpha_upper_b
 
         Mdl.solve()
 
-        alpha_opt = alpha.level()[0]
-        level = m.level()
-        # TODO: check if below is correct and maybe simplify it so that it makes sense
-        # TODO: possibly also return values of beta, not only alfa, as it may be useful to log it
-        dummy_matrix_coloring = [[level[j * (n + 1) + i] for i in range(n + 1)] for j in range(n + 1)]
-        dummy_matrix_coloring = np.array(dummy_matrix_coloring)
-
-        return dummy_matrix_coloring, alpha_opt
+        return get_optimal_values_from_mosek_result(alpha, m)
 
 
 def find_standard_matrix_coloring_mosek(graph, sdp_type):
@@ -225,12 +218,30 @@ def find_standard_matrix_coloring_mosek(graph, sdp_type):
 
         Mdl.solve()
 
-        alpha_opt = alpha.level()[0]
-        level = m.level()
-        result = [[level[j * n + i] for i in range(n)] for j in range(n)]
-        result = np.array(result)
+        return get_optimal_values_from_mosek_result(alpha, m)
 
-        return result, alpha_opt
+
+def get_optimal_values_from_mosek_result(alpha, m):
+    """Retrieves numerical values from Mosek Variable objects. Variable.level() returns primal solution value as flattened
+    1-dim array.
+
+    :param alpha: (Variable) alpha variable of Mosek model
+    :param m: (n x n Variable) m variable of Mosek model
+    :return:
+        (int) optimal value of alpha
+        (n x n matrix) m for which optimal alpha was achieved
+    # TODO: possibly also return values of beta, not only alfa, as it may be useful to log it
+    """
+
+    n = m.getShape()[0]
+
+    alpha_opt = alpha.level()[0]
+
+    m_level = m.level()
+    m_opt = [[m_level[j * n + i] for i in range(n)] for j in range(n)]
+    m_opt = np.array(m_opt)
+
+    return m_opt, alpha_opt
 
 
 def create_beta_factors(graph, beta_factors_strategy):
