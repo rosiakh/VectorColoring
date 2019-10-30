@@ -4,13 +4,47 @@ from result_processing import *
 no_result_char = "--"
 
 
-def create_and_save_latex_tables(result_seed=None):
-    """Create results in form of latex and save it to file (which won't compile - it requires some boilerplate latex)
+def create_and_save_latex_document(result_seed=None):
+    """Create results in form of latex source document and save it to file (it should compile on overleaf.com)
 
-    Created (non-compiling) latex is saved in "paths_config.latex_result_path"
+    Created latex source is saved in "paths_config.latex_result_path"
 
     :param result_seed: result seed associated with results that we want to present in latex
     """
+
+    latex_document = ""
+    with open(paths_config.latex_document_top_path) as f:
+        for line in f:
+            latex_document += line
+
+    latex_document += create_latex_tables(result_seed)
+    latex_document += "\n\\end{document}"
+
+    with open(paths_config.latex_result_path, 'w') as outfile:
+        outfile.write(latex_document)
+
+
+def create_and_save_latex_tables(result_seed=None):
+    """Create results in form of latex source and save it to file (which won't compile - it requires some boilerplate latex)
+
+    Created (non-compiling) latex source is saved in "paths_config.latex_result_path"
+
+    :param result_seed: result seed associated with results that we want to present in latex
+    """
+
+    latex_text = create_latex_tables(result_seed)
+    with open(paths_config.latex_result_path, 'w') as outfile:
+        outfile.write(latex_text)
+
+
+def create_latex_tables(result_seed=None):
+    """Create results in form of latex source and save it to file (which won't compile - it requires some boilerplate latex)
+
+        Created (non-compiling) latex source is saved in "paths_config.latex_result_path"
+
+        :param result_seed: result seed associated with results that we want to present in latex
+        :return (string) latex text
+        """
 
     if result_seed is None:
         result_seed = find_newest_result_seed()
@@ -40,8 +74,7 @@ def create_and_save_latex_tables(result_seed=None):
             algorithm_names=algorithm_names)
         latex_text += "\\end{landscape}\n"
 
-        with open(paths_config.latex_result_path, 'w') as outfile:
-            outfile.write(latex_text)
+        return latex_text
 
 
 def create_latex_table_string(results_directory, table_caption, data_to_save_property, is_float_property, is_bold_min,
@@ -83,7 +116,8 @@ def create_legend(algorithm_names):
 
     latex_text = "\\begin{itemize}\n"
     for i, algorithm_name in enumerate(algorithm_names):
-        latex_text += "\\item " + get_algorithm_letter(algorithm_name) + str(i) + " = " + algorithm_name + "\n"
+        latex_text += \
+            "\\item " + get_algorithm_letter(algorithm_name) + str(i) + " = " + algorithm_name.replace("_", "\_") + "\n"
     latex_text += "\\end{itemize}\n"
 
     return latex_text

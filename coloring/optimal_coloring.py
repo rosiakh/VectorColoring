@@ -1,12 +1,11 @@
 """ Module containing optimal coloring algorithms. """
 
 import itertools
-import sys
 
 from mosek.fusion import *
 
 from algorithm_helper import *
-from configuration.algorithm_options_config import *
+from solver.solver import set_mosek_log_handler
 
 
 def compute_optimal_coloring_lp(graph):
@@ -16,38 +15,37 @@ def compute_optimal_coloring_lp(graph):
     :return (map vertex -> color) optimal coloring
     """
 
-    with Model() as M:
+    with Model() as Mdl:
         n = graph.number_of_nodes()
 
         # Variables
-        x = M.variable([n, n], Domain.binary())
-        w = M.variable("w", n, Domain.binary())
+        x = Mdl.variable([n, n], Domain.binary())
+        w = Mdl.variable("w", n, Domain.binary())
 
         # Constraints
-        M.constraint('X', Expr.sum(x, 1), Domain.equalsTo(1))
+        Mdl.constraint('X', Expr.sum(x, 1), Domain.equalsTo(1))
 
         for i in range(n):
             for j in range(n):
-                M.constraint('C{0}-{1}'.format(i, j), Expr.sub(x.index(i, j), w.index(j)),
-                             Domain.lessThan(0.0))
+                Mdl.constraint('C{0}-{1}'.format(i, j), Expr.sub(x.index(i, j), w.index(j)),
+                               Domain.lessThan(0.0))
 
         for i in range(n):
             for j in range(n):
                 if i > j and has_edge_between_ith_and_jth(graph, i, j):
                     for k in range(n):
-                        M.constraint('D{0}-{1}-{2}'.format(i, j, k), Expr.add(x.index(i, k), x.index(j, k)),
-                                     Domain.lessThan(1.0))
+                        Mdl.constraint('D{0}-{1}-{2}'.format(i, j, k), Expr.add(x.index(i, k), x.index(j, k)),
+                                       Domain.lessThan(1.0))
 
         # Objective
-        M.objective(ObjectiveSense.Minimize, Expr.sum(w))
+        Mdl.objective(ObjectiveSense.Mnimize, Expr.sum(w))
 
         # Set solver parameters
-        M.setSolverParam("numThreads", 0)
+        Mdl.setSolverParam("numThreads", 0)
 
-        if general_verbosity:
-            M.setLogHandler(sys.stdout)
+        set_mosek_log_handler(Mdl)
 
-        M.solve()
+        Mdl.solve()
 
         coloring = {}
 

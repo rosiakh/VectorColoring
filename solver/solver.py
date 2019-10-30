@@ -162,12 +162,7 @@ def find_dummy_matrix_coloring_mosek(graph, beta_factors_strategy, alpha_upper_b
         beta_factors = create_beta_factors(graph, beta_factors_strategy)
         Mdl.objective(ObjectiveSense.Minimize, Expr.add(Expr.mul(n, alpha), Expr.sum(Expr.mulElm(beta_factors, betas))))
 
-        if algorithm_options_config.solver_verbose:
-            if algorithm_options_config.solver_output == 'file':
-                with open(os.path.join(paths_config.logs_directory(), "logs"), 'w') as outfile:
-                    Mdl.setLogHandler(outfile)
-            else:
-                Mdl.setLogHandler(sys.stdout)
+        set_mosek_log_handler(Mdl)
 
         Mdl.solve()
 
@@ -209,12 +204,7 @@ def find_standard_matrix_coloring_mosek(graph, sdp_type):
         # Objective
         Mdl.objective(ObjectiveSense.Minimize, alpha)
 
-        if algorithm_options_config.solver_verbose:
-            if algorithm_options_config.solver_output == 'file':
-                with open(os.path.join(paths_config.logs_directory(), "logs"), 'w') as outfile:
-                    Mdl.setLogHandler(outfile)
-            else:
-                Mdl.setLogHandler(sys.stdout)
+        set_mosek_log_handler(Mdl)
 
         Mdl.solve()
 
@@ -230,7 +220,7 @@ def get_optimal_values_from_mosek_result(alpha, m):
     :return:
         (int) optimal value of alpha
         (n x n matrix) m for which optimal alpha was achieved
-    # TODO: possibly also return values of beta, not only alfa, as it may be useful to log it
+    # TODO: possibly also return values of beta, not only alpha, as it may be useful to log it
     """
 
     n = m.getShape()[0]
@@ -393,3 +383,17 @@ def solve_cvxopt(graph, sdp_type):
         result = mat.value
 
     return result, alpha_opt
+
+
+def set_mosek_log_handler(model):
+    """Sets log handler for Mosek solver model
+
+    :param model: Mosek model
+    """
+
+    if algorithm_options_config.solver_verbose:
+        if algorithm_options_config.solver_output == 'file':
+            with open(os.path.join(paths_config.logs_directory(), "logs"), 'w') as outfile:
+                model.setLogHandler(outfile)
+        else:
+            model.setLogHandler(sys.stdout)

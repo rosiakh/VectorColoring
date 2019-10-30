@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """Configuration of some of the options of algorithms."""
 
-sdp_strong_threshold = -1  # for smaller graphs solver always solves strong sdp
+sdp_strong_threshold = -1  # number of vertices below which solver uses strong sdp no matter which was chosen
+# (done to prevent some error)
 use_previous_sdp_result = False  # if set to True other algorithms may use sdp results of other algorithms in the same run
 solver_name = 'mosek'  # other possibilities: cvxopt; TODO: maybe try picos as well
-solver_verbose = False
-solver_output = 'stdout'
-general_verbosity = False
+solver_verbose = False  # if set to True, then solver log handler is set using 'solver_output'
+solver_output = 'stdout'  # if set to 'file' then results of solver are saved to a file if 'solver_verbose' == True
 parallel = False
 nr_of_parallel_jobs = 1
-optimal_coloring_nodes_threshold = 14
+optimal_coloring_nodes_threshold = 14  # number of vertices below which graph is colored using exponential optimal coloring algorithm
 
 # this config contains parameters related to algorithm's data;
 # for config related to behavior see 'partition_strategy_params'

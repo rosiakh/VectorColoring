@@ -1,0 +1,277 @@
+\documentclass[a4paper,6pt,twoside]{report}
+% KOMPILOWAĆ ZA POMOCĄ pdfLaTeXa, PRZEZ XeLaTeXa MOŻE NIE BYĆ POLSKICH ZNAKÓW
+
+% -------------- Kodowanie znaków, język polski -------------
+\usepackage{lscape}
+\usepackage[a4paper]{geometry}
+\usepackage{float} %ja dodałem
+\usepackage[utf8]{inputenc}
+\usepackage[MeX]{polski}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{fontspec}
+\usepackage{subcaption}
+\captionsetup[figure]{font=small}
+\captionsetup[longtable]{font=small}
+%\setmainfont{Verdana}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{longtable}
+
+\usepackage{float}
+\usepackage{listings}
+\lstset{language=Python}
+
+%\usepackage{pythontex}
+%\setpygmentspygopt{bash}{style=default} %Set syntax highlighting style
+%\setpygmentsfv{xleftmargin=4ex} %Pass fancyvrb options, in this case, left margin
+
+\usepackage{mathtools}
+\usepackage{amsmath, amsfonts, amsthm, latexsym, amssymb} % głównie symbole matematyczne, środowiska twierdzeń
+
+\usepackage[final]{pdfpages} % inputowanie pdfa
+%\usepackage[backend=bibtex]{biblatex}
+\usepackage[backend=bibtex]{biblatex}
+\addbibresource{mybib.bib}
+
+
+% ---------------- Marginesy, akapity, interlinia ------------------
+
+\usepackage[inner=20mm, outer=20mm, bindingoffset=10mm, top=25mm, bottom=25mm]{geometry}
+\usepackage{xcolor}
+
+\linespread{1.5}
+\allowdisplaybreaks
+
+\usepackage{indentfirst} % opcjonalnie; pierwszy akapit z wcięciem
+\setlength{\parindent}{5mm}
+
+%\usepackage{biblatex}
+%\addbibresource{bibliography.bib}
+
+
+%--------------------------- ŻYWA PAGINA ------------------------
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+% numery stron: lewa do lewego, prawa do prawego
+\fancyfoot[LE,RO]{\thepage}
+% prawa pagina: zawartość \rightmark do lewego, wewnętrznego (marginesu)
+\fancyhead[LO]{\sc \nouppercase{\rightmark}}
+% lewa pagina: zawartość \leftmark do prawego, wewnętrznego (marginesu)
+\fancyhead[RE]{\sc \leftmark}
+
+\renewcommand{\chaptermark}[1]{
+\markboth{\thechapter.\ #1}{}}
+
+% kreski oddzielające paginy (górną i dolną):
+\renewcommand{\headrulewidth}{0 pt} % 0 - nie ma, 0.5 - jest linia
+
+
+\fancypagestyle{plain}{% to definiuje wygląd pierwszej strony nowego rozdziału - obecnie tylko numeracja
+  \fancyhf{}%
+  \fancyfoot[LE,RO]{\thepage}%
+
+  \renewcommand{\headrulewidth}{0pt}% Line at the header invisible
+  \renewcommand{\footrulewidth}{0.0pt}
+}
+
+
+
+% ---------------- Nagłówki rozdziałów ---------------------
+
+\usepackage{titlesec}
+\titleformat{\chapter}%[display]
+  {\normalfont\Large \bfseries}
+  {\thechapter.}{1ex}{\Large}
+
+\titleformat{\section}
+  {\normalfont\large\bfseries}
+  {\thesection.}{1ex}{}
+\titlespacing{\section}{0pt}{30pt}{20pt}
+%\titlespacing{\co}{akapit}{ile przed}{ile po}
+
+\titleformat{\subsection}
+  {\normalfont \bfseries}
+  {\thesubsection.}{1ex}{}
+
+
+% ----------------------- Spis treści ---------------------------
+\def\cleardoublepage{\clearpage\if@twoside
+\ifodd\c@page\else\hbox{}\thispagestyle{empty}\newpage
+\if@twocolumn\hbox{}\newpage\fi\fi\fi}
+
+
+% kropki dla chapterów
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\l@chapter}
+  {\hfil}
+  {\leaders\hbox{\normalfont$\m@th\mkern \@dotsep mu\hbox{.}\mkern \@dotsep mu$}\hfill}
+  {}{}
+\makeatother
+
+\usepackage{titletoc}
+\makeatletter
+\titlecontents{chapter}% <section-type>
+  [0pt]% <left>
+  {}% <above-code>
+  {\bfseries \thecontentslabel.\quad}% <numbered-entry-format>
+  {\bfseries}% <numberless-entry-format>
+  {\bfseries\leaders\hbox{\normalfont$\m@th\mkern \@dotsep mu\hbox{.}\mkern \@dotsep mu$}\hfill\contentspage}% <filler-page-format>
+
+\titlecontents{section}
+  [1em]
+  {}
+  {\thecontentslabel.\quad}
+  {}
+  {\leaders\hbox{\normalfont$\m@th\mkern \@dotsep mu\hbox{.}\mkern \@dotsep mu$}\hfill\contentspage}
+
+\titlecontents{subsection}
+  [2em]
+  {}
+  {\thecontentslabel.\quad}
+  {}
+  {\leaders\hbox{\normalfont$\m@th\mkern \@dotsep mu\hbox{.}\mkern \@dotsep mu$}\hfill\contentspage}
+\makeatother
+
+
+
+% ---------------------- Spisy tabel i obrazków ----------------------
+
+\renewcommand*{\thetable}{\arabic{chapter}.\arabic{table}}
+\renewcommand*{\thefigure}{\arabic{chapter}.\arabic{figure}}
+%\let\c@table\c@figure % jeśli włączone, numeruje tabele i obrazki razem
+
+
+% --------------------- Definicje, twierdzenia etc. ---------------
+
+
+\makeatletter
+\newtheoremstyle{definition}%    % Name
+{3ex}%                          % Space above
+{3ex}%                          % Space below
+{\upshape}%                      % Body font
+{}%                              % Indent amount
+{\bfseries}%                     % Theorem head font
+{.}%                             % Punctuation after theorem head
+{.5em}%                            % Space after theorem head, ' ', or \newline
+{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}%  % Theorem head spec (can be left empty, meaning `normal')
+\makeatother
+
+% ----------------------------- POLSKI --------------------------------
+
+\theoremstyle{definition}
+\newtheorem{theorem}{Twierdzenie}[chapter]
+\newtheorem{lemma}[theorem]{Lemat}
+\newtheorem{example}[theorem]{Przykład}
+\newtheorem{proposition}[theorem]{Stwierdzenie}
+\newtheorem{corollary}[theorem]{Wniosek}
+\newtheorem{definition}[theorem]{Definicja}
+\newtheorem{remark}[theorem]{Uwaga}
+
+
+
+% ----------------------------- Dowód -----------------------------
+
+
+%\makeatletter
+%\renewenvironment{proof}[1][\proofname]
+%{\par
+%  \vspace{-12pt}% remove the space after the theorem
+%  \pushQED{\qed}%
+%  \normalfont
+%  \topsep0pt \partopsep0pt % no space before
+%  \trivlist
+%  \item[\hskip\labelsep
+%        \sc
+%    #1\@addpunct{:}]\ignorespaces
+%}
+%{%
+%  \popQED\endtrivlist\@endpefalse
+%  \addvspace{20pt} % some space after
+%}
+%
+%\renewcommand{\qedhere}{\hfill \qedsymbol}
+%\makeatother
+
+
+
+% will apply to all captions
+\usepackage[fontsize=small]{caption}
+
+% will apply to all subcaptions
+\usepackage[fontsize=small]{subcaption}
+
+
+% ------------------------- PSEUDOKOD --------------------------
+
+%\usepackage{algorithm2e}
+%\usepackage{program}
+%\usepackage{listings}
+\usepackage[ruled,vlined, linesnumbered, lined, boxed]{algorithm2e}
+%\usepackage{algpseudocode}
+
+\newenvironment{megaalgorithm}[1][htb]
+  {\renewcommand{\algorithmcfname}{MegaAlgorithm}% Update algorithm name
+   \begin{algorithm}[#1]%
+  }{\end{algorithm}}
+
+% \begin{lstlisting}[frame=single]
+% [DllImport(
+% "CocoLibrary.dll",
+% CallingConvention = CallingConvention.Cdecl)]%
+
+% unsafe static extern char*
+% coco_problem_get_name(struct_pointer_t problem);
+% \end{lstlisting}
+
+% \begin{program}
+% \mbox{A fast exponentiation procedure:}
+% \BEGIN \\ %
+%   \FOR i:=1 \TO 10 \STEP 1 \DO
+%      |expt|(2,i); \\ |newline|() \OD %
+% \rcomment{This text will be set flush to the right margin}
+% \WHERE
+% \PROC |expt|(x,n) \BODY
+%           z:=1;
+%           \DO \IF n=0 \THEN \EXIT \FI;
+%              \DO \IF |odd|(n) \THEN \EXIT \FI;
+% \COMMENT{This is a comment statement};
+%                 n:=n/2; x:=x*x \OD;
+%              \{ n>0 \};
+%              n:=n-1; z:=z*x \OD;
+%           |print|(z) \ENDPROC
+% \END
+% \end{program}
+
+% \caption{name}\label{a}
+% \begin{algorithmic}
+% \caption{name}\label{a}
+% \Require $n \geq 0$
+% \Ensure $y = x^n$
+% \State $y \Leftarrow 1$
+% \State $X \Leftarrow x$
+% \State $N \Leftarrow n$
+% \While{$N \neq 0$}
+% \If{$N$ is even}
+%  \State $X \Leftarrow X \times X$
+%  \State $N \Leftarrow \frac{N}{2} $  \Comment{This is a comment}
+% \ElsIf{$N$ is odd}
+%  \State $y \Leftarrow y \times X$
+%  \State $N \Leftarrow N - 1$
+% \EndIf
+% \EndWhile
+% \end{algorithmic}
+
+
+
+
+
+
+
+\title{Directed Vector Coloring}
+\author{Hubert Rosiak}
+\date{August 2019}
+
+\begin{document}
