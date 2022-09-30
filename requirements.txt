@@ -6,7 +6,7 @@ dill==0.2.9
 ecos==2.0.7.post1
 fastcache==1.0.2
 future==0.17.1
-joblib==0.13.2
+joblib==1.2.0
 kiwisolver==1.0.1
 matplotlib==2.2.4
 Mosek==8.1.77
